@@ -10,9 +10,8 @@
         .bg-maroon { background-color: #7b2c52; }
         .text-maroon { color: #d46596; }
         
-        /* Bulletproof Modal CSS */
         .modal-overlay {
-            display: none; /* Hidden by default */
+            display: none; 
             position: fixed; inset: 0; 
             background: rgba(0, 0, 0, 0.85);
             z-index: 999;
@@ -33,9 +32,14 @@
                     <p class="text-xs text-gray-400">Enterprise Portfolio Manager</p>
                 </div>
             </div>
-            <button type="button" onclick="toggleModal('settingsModal')" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded font-semibold text-sm transition">
-                ⚙️ Manage Dropdowns
-            </button>
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="exportToCSV()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded font-semibold text-sm transition shadow-lg shadow-blue-900/50">
+                    📥 Export CSV
+                </button>
+                <button type="button" onclick="toggleModal('settingsModal')" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded font-semibold text-sm transition">
+                    ⚙️ Manage Dropdowns
+                </button>
+            </div>
         </div>
     </header>
 
@@ -52,7 +56,7 @@
             
             <div class="flex items-center gap-2">
                 <label class="text-xs font-bold text-gray-500 uppercase">Seller</label>
-                <select id="filterSeller" onchange="renderTable()" class="bg-gray-800 border border-gray-700 rounded p-2 text-sm outline-none focus:border-pink-500 w-40">
+                <select id="filterSeller" onchange="renderTable()" class="bg-gray-800 border border-gray-700 rounded p-2 text-sm outline-none focus:border-pink-500 w-32">
                     <option value="All">All Sellers</option>
                 </select>
             </div>
@@ -67,6 +71,16 @@
                     <option value="KWT">KWT</option>
                     <option value="IRQ">IRQ</option>
                     <option value="OMN">OMN</option>
+                </select>
+            </div>
+
+            <!-- NEW Delivery Status Filter -->
+            <div class="flex items-center gap-2">
+                <label class="text-xs font-bold text-gray-500 uppercase">Status</label>
+                <select id="filterStatus" onchange="renderTable()" class="bg-gray-800 border border-gray-700 rounded p-2 text-sm outline-none focus:border-pink-500 w-32">
+                    <option value="All">All Statuses</option>
+                    <option value="Pending">Pending (Not Delivered)</option>
+                    <option value="Delivered">Delivered</option>
                 </select>
             </div>
         </div>
@@ -203,17 +217,69 @@
 
     <!-- Javascript -->
     <script>
-        const STORAGE_KEY = 'stocksApp_V3_Stable';
-        let appData = { sellers: [], payMethods: [], stocks: [] };
+        const STORAGE_KEY = 'stocksApp_V4_Filters';
+        
+        // Define Default Data (Pre-populating the 3 Payment Methods)
+        let appData = { 
+            sellers: [], 
+            payMethods: ["STOCK ARRIVAL", "SPLIT", "From Next Invoice"], 
+            stocks: [] 
+        };
 
         // Load data on startup
         try {
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
-                appData = JSON.parse(saved);
+                const parsed = JSON.parse(saved);
+                appData.sellers = parsed.sellers || [];
+                appData.stocks = parsed.stocks || [];
+                // If payment methods exist in memory, use them. If they somehow got deleted, restore the defaults.
+                if (parsed.payMethods && parsed.payMethods.length > 0) {
+                    appData.payMethods = parsed.payMethods;
+                } else {
+                    appData.payMethods = ["STOCK ARRIVAL", "SPLIT", "From Next Invoice"];
+                }
             }
         } catch (e) {
             console.warn("Could not load data. Starting fresh.");
+        }
+
+        // Export to CSV Function
+        function exportToCSV() {
+            if(appData.stocks.length === 0) {
+                alert("You have no records to export!");
+                return;
+            }
+            
+            let csvContent = "data:text/csv;charset=utf-8,";
+            // CSV Headers
+            csvContent += "Delivered?,Requested At,Seller,Quotation,Qty,Country,Shipping,Payment Status,Payment Method,Qty Delivered,Delivered Date\n";
+            
+            // CSV Rows
+            appData.stocks.forEach(s => {
+                const row = [
+                    s.isDelivered ? "Yes" : "No",
+                    s.reqDate,
+                    `"${s.seller}"`,
+                    `"${s.quotation}"`,
+                    s.qty,
+                    s.country,
+                    s.shipping,
+                    s.payStatus,
+                    `"${s.payMethod}"`,
+                    s.qtyDelivered || "",
+                    s.delDate || ""
+                ];
+                csvContent += row.join(",") + "\n";
+            });
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `upcoming_stocks_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         // Save data function
@@ -223,7 +289,6 @@
             renderTable();
         }
 
-        // Extremely reliable Modal Toggle
         function toggleModal(id) {
             const modal = document.getElementById(id);
             if (modal.style.display === 'flex') {
@@ -311,7 +376,11 @@
 
         // Form Logic
         function openAddModal() {
-            // REMOVED THE BLOCKER THAT FORCED SETTINGS OPEN
+            if (appData.sellers.length === 0) {
+                alert("Please add at least one Account Manager (Seller) in the Settings menu before adding stocks!");
+                toggleModal('settingsModal');
+                return;
+            }
             document.getElementById('stockForm').reset();
             document.getElementById('stockId').value = '';
             document.getElementById('modalTitle').innerText = "Add New Stock Record";
@@ -398,10 +467,15 @@
         function renderTable() {
             const fSeller = document.getElementById('filterSeller').value;
             const fCountry = document.getElementById('filterCountry').value;
+            const fStatus = document.getElementById('filterStatus').value;
             
             let filtered = appData.stocks;
+            
+            // Apply Filters
             if (fSeller !== "All") filtered = filtered.filter(s => s.seller === fSeller);
             if (fCountry !== "All") filtered = filtered.filter(s => s.country === fCountry);
+            if (fStatus === "Delivered") filtered = filtered.filter(s => s.isDelivered === true);
+            if (fStatus === "Pending") filtered = filtered.filter(s => s.isDelivered === false || !s.isDelivered);
 
             const tbody = document.getElementById('tableBody');
 
@@ -411,7 +485,7 @@
                     <tr>
                         <td colspan="12" class="p-12 text-center text-gray-500">
                             <span class="text-3xl block mb-2">📦</span>
-                            <p>No records found. Click 'Manage Dropdowns' to add Sellers, then click 'Add New Stock'!</p>
+                            <p>No records found. Click 'Add New Stock' to begin!</p>
                         </td>
                     </tr>
                 `;
