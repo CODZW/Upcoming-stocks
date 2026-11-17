@@ -3,165 +3,333 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Tracker Dashboard</title>
+    <title>Upcoming Stocks Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 20px;
-            background-color: #f8f9fa;
-            color: #333;
-        }
-        .table-container {
-            overflow-x: auto;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: white;
-            white-space: nowrap;
-        }
-        th {
-            background-color: #7b2c52; /* Maroon */
-            color: white;
-            padding: 12px 15px;
-            text-align: center;
-            font-weight: 600;
-            font-size: 14px;
-            border: 1px solid #993b69;
-        }
-        td {
-            padding: 10px 15px;
-            border: 1px solid #d1d5db;
-            font-size: 13px;
-            text-align: center;
-        }
-        .month-divider td {
-            background-color: #b57b98; /* Light Purple/Pink */
-            color: white;
-            font-weight: bold;
-            padding: 8px;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .row-green td {
-            background-color: #e8f5e9; /* Light Green */
-        }
-        .badge {
-            padding: 4px 10px;
-            border-radius: 12px;
-            color: white;
-            font-size: 12px;
-            font-weight: 600;
-            display: inline-block;
-        }
-        /* Badge Colors */
-        .bg-qat { background-color: #5b2c6f; }
-        .bg-ksa { background-color: #0e6655; }
-        .bg-uae { background-color: #d4ac0d; color: black; }
-        .bg-air { background-color: #2874a6; }
-        .bg-local { background-color: #1e8449; }
-        .bg-ocean { background-color: #c0392b; }
+        .maroon-bg { background-color: #7b2c52; }
+        .maroon-text { color: #7b2c52; }
+        .maroon-border { border-color: #7b2c52; }
+        .modal { display: none; background: rgba(0,0,0,0.5); }
+        .modal.active { display: flex; }
     </style>
 </head>
-<body>
+<body class="bg-gray-100 font-sans text-gray-800">
 
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Requested at</th>
-                    <th>Seller</th>
-                    <th>Quotation</th>
-                    <th>Qty</th>
-                    <th>Destination Country</th>
-                    <th>Shipping Method</th>
-                    <th>Payment status</th>
-                    <th>Payment method</th>
-                    <th>Qty delivered</th>
-                    <th>Deducted</th>
-                    <th>Delivered Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- June Section -->
-                <tr class="month-divider">
-                    <td colspan="11">June</td>
-                </tr>
-                <tr class="row-green">
-                    <td>5/15/2026</td>
-                    <td>Yassine Chelkhine</td>
-                    <td>56796</td>
-                    <td>1000</td>
-                    <td><span class="badge bg-qat">QAT</span></td>
-                    <td><span class="badge bg-air">Air freight</span></td>
-                    <td>Approved</td>
-                    <td>Stock Arrival</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr class="row-green">
-                    <td>6/20/2026</td>
-                    <td>KHADIJA ELKHAOULI</td>
-                    <td>57410</td>
-                    <td>5000</td>
-                    <td><span class="badge bg-ksa">KSA</span></td>
-                    <td><span class="badge bg-air">Air freight</span></td>
-                    <td>Paid</td>
-                    <td>Split/From next Inv</td>
-                    <td>5006</td>
-                    <td></td>
-                    <td>2026-08-07</td>
-                </tr>
-                <tr class="row-green">
-                    <td>6/27/2026</td>
-                    <td>Mouad Nadif</td>
-                    <td>58272</td>
-                    <td>300</td>
-                    <td><span class="badge bg-ksa">KSA</span></td>
-                    <td><span class="badge bg-ocean">Ocean f...</span></td>
-                    <td>Paid</td>
-                    <td>Stock Arrival</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
+    <!-- Header -->
+    <header class="maroon-bg text-white p-6 shadow-md flex justify-between items-center">
+        <h1 class="text-4xl font-bold uppercase tracking-wider">Upcoming Stocks</h1>
+        <button onclick="toggleModal('settingsModal')" class="bg-white maroon-text px-4 py-2 rounded font-bold shadow hover:bg-gray-200 transition">
+            ⚙️ Manage Lists (Settings)
+        </button>
+    </header>
 
-                <!-- July Section -->
-                <tr class="month-divider">
-                    <td colspan="11">July</td>
-                </tr>
-                <tr class="row-green">
-                    <td>7/3/2026</td>
-                    <td>Amali</td>
-                    <td>58743</td>
-                    <td>576</td>
-                    <td><span class="badge bg-ksa">KSA</span></td>
-                    <td><span class="badge bg-local">Local M...</span></td>
-                    <td>Approved</td>
-                    <td>StockArrival</td>
-                    <td>576</td>
-                    <td></td>
-                    <td>2026-07-06</td>
-                </tr>
-                <tr class="row-green">
-                    <td>7/8/2026</td>
-                    <td>abdelhaK yhek</td>
-                    <td>58854</td>
-                    <td>50</td>
-                    <td><span class="badge bg-uae">UAE</span></td>
-                    <td><span class="badge bg-local">Local M...</span></td>
-                    <td>Deposit</td>
-                    <td>StockArrival</td>
-                    <td>50</td>
-                    <td></td>
-                    <td>2026-07-11</td>
-                </tr>
-            </tbody>
-        </table>
+    <main class="p-6 max-w-full mx-auto">
+        <!-- Controls & Filters -->
+        <div class="flex flex-wrap gap-4 justify-between items-center mb-6 bg-white p-4 rounded shadow">
+            <div class="flex gap-4 items-center w-full md:w-auto">
+                <button onclick="openAddModal()" class="bg-green-600 text-white px-5 py-2 rounded font-bold hover:bg-green-700 transition">
+                    + Add New Stock
+                </button>
+                <div class="h-8 w-px bg-gray-300"></div>
+                <label class="font-semibold">Filter by Seller:</label>
+                <select id="filterSeller" onchange="renderTable()" class="border p-2 rounded w-48">
+                    <option value="All">All Sellers</option>
+                </select>
+                <label class="font-semibold">Filter Country:</label>
+                <select id="filterCountry" onchange="renderTable()" class="border p-2 rounded w-32">
+                    <option value="All">All</option>
+                    <option value="KSA">KSA</option>
+                    <option value="UAE">UAE</option>
+                    <option value="QAT">QAT</option>
+                    <option value="KWT">KWT</option>
+                    <option value="IRQ">IRQ</option>
+                    <option value="OMN">OMN</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="overflow-x-auto bg-white shadow rounded">
+            <table class="w-full text-sm text-center border-collapse">
+                <thead class="maroon-bg text-white">
+                    <tr>
+                        <th class="p-3 border maroon-border">Requested At</th>
+                        <th class="p-3 border maroon-border">Seller</th>
+                        <th class="p-3 border maroon-border">Quotation</th>
+                        <th class="p-3 border maroon-border">Qty</th>
+                        <th class="p-3 border maroon-border">Destination</th>
+                        <th class="p-3 border maroon-border">Shipping</th>
+                        <th class="p-3 border maroon-border">Payment Status</th>
+                        <th class="p-3 border maroon-border">Payment Method</th>
+                        <th class="p-3 border maroon-border">Qty Delivered</th>
+                        <th class="p-3 border maroon-border">Delivered Date</th>
+                        <th class="p-3 border maroon-border">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Rows will be injected by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Modal: Add/Edit Stock -->
+    <div id="stockModal" class="modal fixed inset-0 z-50 items-center justify-center">
+        <div class="bg-white w-full max-w-3xl rounded shadow-lg p-6 max-h-screen overflow-y-auto">
+            <h2 id="modalTitle" class="text-2xl font-bold maroon-text mb-4">Add New Stock</h2>
+            <form id="stockForm" onsubmit="saveStock(event)" class="grid grid-cols-2 gap-4">
+                <input type="hidden" id="stockId">
+                
+                <div class="flex flex-col"><label>Requested At</label><input type="date" id="reqDate" class="border p-2 rounded" required></div>
+                <div class="flex flex-col"><label>Seller</label><select id="seller" class="border p-2 rounded" required></select></div>
+                
+                <div class="flex flex-col"><label>Quotation</label><input type="text" id="quotation" class="border p-2 rounded" required></div>
+                <div class="flex flex-col"><label>Quantity</label><input type="number" id="qty" class="border p-2 rounded" required></div>
+                
+                <div class="flex flex-col"><label>Destination Country</label>
+                    <select id="country" class="border p-2 rounded">
+                        <option value="KSA">KSA</option><option value="UAE">UAE</option><option value="QAT">QAT</option>
+                        <option value="KWT">KWT</option><option value="IRQ">IRQ</option><option value="OMN">OMN</option>
+                    </select>
+                </div>
+                <div class="flex flex-col"><label>Shipping Method</label>
+                    <select id="shipping" class="border p-2 rounded">
+                        <option value="Air freight">Air freight</option>
+                        <option value="Ocean freight">Ocean freight</option>
+                        <option value="Local Market">Local Market</option>
+                    </select>
+                </div>
+                
+                <div class="flex flex-col"><label>Payment Status</label>
+                    <select id="payStatus" class="border p-2 rounded">
+                        <option value="Approved">Approved</option><option value="Paid">Paid</option><option value="Deposit">Deposit</option>
+                    </select>
+                </div>
+                <div class="flex flex-col"><label>Payment Method</label><select id="payMethod" class="border p-2 rounded" required></select></div>
+                
+                <div class="flex flex-col"><label>Qty Delivered</label><input type="number" id="qtyDelivered" class="border p-2 rounded"></div>
+                <div class="flex flex-col"><label>Delivered Date</label><input type="date" id="delDate" class="border p-2 rounded"></div>
+                
+                <div class="col-span-2 flex justify-end gap-3 mt-4">
+                    <button type="button" onclick="toggleModal('stockModal')" class="bg-gray-400 text-white px-4 py-2 rounded">Cancel</button>
+                    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Save Stock</button>
+                </div>
+            </form>
+        </div>
     </div>
 
+    <!-- Modal: Settings (Manage Dropdowns) -->
+    <div id="settingsModal" class="modal fixed inset-0 z-50 items-center justify-center">
+        <div class="bg-white w-full max-w-2xl rounded shadow-lg p-6">
+            <h2 class="text-2xl font-bold maroon-text mb-4">Manage Dropdown Lists</h2>
+            
+            <div class="grid grid-cols-2 gap-6">
+                <!-- Manage Sellers -->
+                <div>
+                    <h3 class="font-bold text-lg border-b mb-2">Account Managers (Sellers)</h3>
+                    <div class="flex gap-2 mb-2">
+                        <input type="text" id="newSeller" class="border p-2 rounded flex-1" placeholder="Add new name...">
+                        <button onclick="addListItem('sellers', 'newSeller')" class="bg-blue-600 text-white px-3 py-2 rounded">+</button>
+                    </div>
+                    <ul id="sellerList" class="bg-gray-50 border rounded p-2 max-h-40 overflow-y-auto text-sm"></ul>
+                </div>
+                
+                <!-- Manage Payment Methods -->
+                <div>
+                    <h3 class="font-bold text-lg border-b mb-2">Payment Methods</h3>
+                    <div class="flex gap-2 mb-2">
+                        <input type="text" id="newPayMethod" class="border p-2 rounded flex-1" placeholder="Add method...">
+                        <button onclick="addListItem('payMethods', 'newPayMethod')" class="bg-blue-600 text-white px-3 py-2 rounded">+</button>
+                    </div>
+                    <ul id="payMethodList" class="bg-gray-50 border rounded p-2 max-h-40 overflow-y-auto text-sm"></ul>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end">
+                <button onclick="toggleModal('settingsModal')" class="maroon-bg text-white px-5 py-2 rounded font-bold">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State Management
+        let appData = JSON.parse(localStorage.getItem('stocksAppData')) || {
+            sellers: ["Yassine Chelkhine", "Mouad Nadif", "Amali", "ORANAS LTD"],
+            payMethods: ["Stock Arrival", "Split/From next Inv", "Deposit"],
+            stocks: []
+        };
+
+        // Utility to save to LocalStorage
+        function saveData() {
+            localStorage.setItem('stocksAppData', JSON.stringify(appData));
+            updateDropdowns();
+            renderTable();
+        }
+
+        // Toggle Modals
+        function toggleModal(id) {
+            document.getElementById(id).classList.toggle('active');
+        }
+
+        // Add item to custom lists
+        function addListItem(listName, inputId) {
+            const input = document.getElementById(inputId);
+            const val = input.value.trim();
+            if (val && !appData[listName].includes(val)) {
+                appData[listName].push(val);
+                input.value = '';
+                saveData();
+                renderSettingsLists();
+            }
+        }
+
+        // Remove item from custom lists
+        function removeListItem(listName, index) {
+            appData[listName].splice(index, 1);
+            saveData();
+            renderSettingsLists();
+        }
+
+        // Render Settings Lists (UI)
+        function renderSettingsLists() {
+            const sList = document.getElementById('sellerList');
+            sList.innerHTML = appData.sellers.map((s, i) => 
+                `<li class="flex justify-between p-1 border-b"><span>${s}</span> <button onclick="removeListItem('sellers', ${i})" class="text-red-500 font-bold">X</button></li>`
+            ).join('');
+
+            const pList = document.getElementById('payMethodList');
+            pList.innerHTML = appData.payMethods.map((p, i) => 
+                `<li class="flex justify-between p-1 border-b"><span>${p}</span> <button onclick="removeListItem('payMethods', ${i})" class="text-red-500 font-bold">X</button></li>`
+            ).join('');
+        }
+
+        // Update Dropdowns in Form and Filters
+        function updateDropdowns() {
+            // Form dropdowns
+            const sSelect = document.getElementById('seller');
+            sSelect.innerHTML = appData.sellers.map(s => `<option value="${s}">${s}</option>`).join('');
+            
+            const pSelect = document.getElementById('payMethod');
+            pSelect.innerHTML = appData.payMethods.map(p => `<option value="${p}">${p}</option>`).join('');
+
+            // Filter dropdown
+            const fSeller = document.getElementById('filterSeller');
+            const currentFilter = fSeller.value;
+            fSeller.innerHTML = `<option value="All">All Sellers</option>` + appData.sellers.map(s => `<option value="${s}">${s}</option>`).join('');
+            fSeller.value = appData.sellers.includes(currentFilter) ? currentFilter : "All";
+        }
+
+        // Form Logic
+        function openAddModal() {
+            document.getElementById('stockForm').reset();
+            document.getElementById('stockId').value = '';
+            document.getElementById('modalTitle').innerText = "Add New Stock";
+            toggleModal('stockModal');
+        }
+
+        function editStock(id) {
+            const stock = appData.stocks.find(s => s.id === id);
+            if(stock) {
+                document.getElementById('stockId').value = stock.id;
+                document.getElementById('reqDate').value = stock.reqDate;
+                document.getElementById('seller').value = stock.seller;
+                document.getElementById('quotation').value = stock.quotation;
+                document.getElementById('qty').value = stock.qty;
+                document.getElementById('country').value = stock.country;
+                document.getElementById('shipping').value = stock.shipping;
+                document.getElementById('payStatus').value = stock.payStatus;
+                document.getElementById('payMethod').value = stock.payMethod;
+                document.getElementById('qtyDelivered').value = stock.qtyDelivered;
+                document.getElementById('delDate').value = stock.delDate;
+                
+                document.getElementById('modalTitle').innerText = "Edit Stock";
+                toggleModal('stockModal');
+            }
+        }
+
+        function deleteStock(id) {
+            if(confirm("Are you sure you want to delete this row?")) {
+                appData.stocks = appData.stocks.filter(s => s.id !== id);
+                saveData();
+            }
+        }
+
+        function saveStock(e) {
+            e.preventDefault();
+            const idVal = document.getElementById('stockId').value;
+            
+            const stockData = {
+                id: idVal ? parseInt(idVal) : Date.now(),
+                reqDate: document.getElementById('reqDate').value,
+                seller: document.getElementById('seller').value,
+                quotation: document.getElementById('quotation').value,
+                qty: document.getElementById('qty').value,
+                country: document.getElementById('country').value,
+                shipping: document.getElementById('shipping').value,
+                payStatus: document.getElementById('payStatus').value,
+                payMethod: document.getElementById('payMethod').value,
+                qtyDelivered: document.getElementById('qtyDelivered').value,
+                delDate: document.getElementById('delDate').value,
+            };
+
+            if (idVal) { // Update existing
+                const index = appData.stocks.findIndex(s => s.id === parseInt(idVal));
+                appData.stocks[index] = stockData;
+            } else { // Add new
+                appData.stocks.push(stockData);
+            }
+
+            saveData();
+            toggleModal('stockModal');
+        }
+
+        // Render Main Table with Badges
+        function getBadge(text) {
+            const colors = {
+                "KSA": "bg-teal-700 text-white", "QAT": "bg-purple-800 text-white", "UAE": "bg-yellow-500 text-black",
+                "Air freight": "bg-blue-600 text-white", "Local Market": "bg-green-700 text-white", "Ocean freight": "bg-red-600 text-white"
+            };
+            const c = colors[text] || "bg-gray-200 text-black";
+            return `<span class="px-2 py-1 rounded-full text-xs font-bold ${c}">${text}</span>`;
+        }
+
+        function renderTable() {
+            const fSeller = document.getElementById('filterSeller').value;
+            const fCountry = document.getElementById('filterCountry').value;
+            
+            let filtered = appData.stocks;
+            if (fSeller !== "All") filtered = filtered.filter(s => s.seller === fSeller);
+            if (fCountry !== "All") filtered = filtered.filter(s => s.country === fCountry);
+
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = filtered.map(s => `
+                <tr class="border-b hover:bg-green-50 transition">
+                    <td class="p-2">${s.reqDate}</td>
+                    <td class="p-2 font-semibold">${s.seller}</td>
+                    <td class="p-2">${s.quotation}</td>
+                    <td class="p-2">${s.qty}</td>
+                    <td class="p-2">${getBadge(s.country)}</td>
+                    <td class="p-2">${getBadge(s.shipping)}</td>
+                    <td class="p-2 font-bold ${s.payStatus==='Approved' ? 'text-green-600' : 'text-blue-600'}">${s.payStatus}</td>
+                    <td class="p-2">${s.payMethod}</td>
+                    <td class="p-2">${s.qtyDelivered || '-'}</td>
+                    <td class="p-2">${s.delDate || '-'}</td>
+                    <td class="p-2 flex justify-center gap-2">
+                        <button onclick="editStock(${s.id})" class="text-blue-500 hover:text-blue-700">✏️</button>
+                        <button onclick="deleteStock(${s.id})" class="text-red-500 hover:text-red-700">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            if(filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-gray-500">No stocks match your filters, or no stocks added yet.</td></tr>`;
+            }
+        }
+
+        // Initialize App
+        updateDropdowns();
+        renderSettingsLists();
+        renderTable();
+    </script>
 </body>
 </html>
