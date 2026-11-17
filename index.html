@@ -71,7 +71,7 @@
             </div>
         </div>
 
-        <!-- The Table (This will not disappear!) -->
+        <!-- The Table -->
         <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-2xl flex-1">
             <div class="overflow-x-auto w-full">
                 <table class="w-full text-sm text-left whitespace-nowrap">
@@ -311,11 +311,7 @@
 
         // Form Logic
         function openAddModal() {
-            if (appData.sellers.length === 0 || appData.payMethods.length === 0) {
-                alert("Please add at least one Account Manager (Seller) and Payment Method in the Settings menu (Top Right) before adding stocks!");
-                toggleModal('settingsModal');
-                return;
-            }
+            // REMOVED THE BLOCKER THAT FORCED SETTINGS OPEN
             document.getElementById('stockForm').reset();
             document.getElementById('stockId').value = '';
             document.getElementById('modalTitle').innerText = "Add New Stock Record";
