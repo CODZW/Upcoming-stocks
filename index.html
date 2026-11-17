@@ -5,55 +5,459 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upcoming Stocks — Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: radial-gradient(at top, #1e111a 0%, #0f0a0d 100%);
+        body { background-color: #120e10; font-family: ui-sans-serif, system-ui, sans-serif; }
+        .bg-maroon { background-color: #7b2c52; }
+        .text-maroon { color: #d46596; }
+        
+        /* Bulletproof Modal CSS */
+        .modal-overlay {
+            display: none; /* Hidden by default */
+            position: fixed; inset: 0; 
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 999;
+            align-items: center; justify-content: center;
+            padding: 1rem;
         }
-        .bg-maroon-deep { background-color: #4a152d; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
     </style>
 </head>
-<body class="min-h-screen text-gray-100 flex flex-col antialiased pb-12">
+<body class="text-gray-200 min-h-screen flex flex-col antialiased">
 
-    <!-- Premium Navigation / Header -->
-    <header class="border-b border-white/5 bg-black/35 sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+    <!-- Header -->
+    <header class="border-b border-gray-800 bg-[#0a0809] p-4 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto flex justify-between items-center gap-4">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-700 to-[#7b2c52] flex items-center justify-center shadow-lg shadow-rose-950/40">
-                    <span class="font-extrabold text-white text-lg tracking-wide">US</span>
-                </div>
+                <div class="w-10 h-10 rounded-lg bg-maroon flex items-center justify-center font-bold text-white shadow-lg">US</div>
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-gray-100 to-gray-400 bg-clip-text text-transparent">UPCOMING STOCKS</h1>
-                    <p class="text-xs text-gray-500 font-medium">Enterprise Portfolio Manager</p>
+                    <h1 class="text-xl font-bold text-white tracking-wide">UPCOMING STOCKS</h1>
+                    <p class="text-xs text-gray-400">Enterprise Portfolio Manager</p>
                 </div>
             </div>
-            <button onclick="toggleModal('settingsModal')" class="bg-white/5 border border-white/10 hover:border-white/20 text-gray-200 px-4 py-2 rounded-xl text-sm font-semibold inline-flex items-center gap-2 transition duration-200 hover:bg-white/10">
-                <span>⚙️</span> Manage Dropdowns
+            <button type="button" onclick="toggleModal('settingsModal')" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded font-semibold text-sm transition">
+                ⚙️ Manage Dropdowns
             </button>
         </div>
     </header>
 
-    <main class="max-w-7xl w-full mx-auto px-6 mt-8 flex-1 flex flex-col">
+    <!-- Main Content -->
+    <main class="max-w-7xl w-full mx-auto p-6 flex flex-col gap-6 flex-1">
         
-        <!-- Action Hub & Filters -->
-        <div class="bg-[#1a1518] border border-white/5 rounded-2xl p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
-            <div class="flex flex-wrap items-center gap-3">
-                <button onclick="openAddModal()" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition shadow-lg shadow-emerald-950/20">
-                    <span class="text-lg">+</span> Add New Stock
-                </button>
-                <div class="h-6 w-px bg-white/10 hidden sm:block"></div>
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Seller</span>
-                    <select id="filterSeller" onchange="renderTable()" class="bg-white/5 border border-white/10 text-gray-300 text-sm rounded-lg p-2 focus:ring-1 focus:ring-pink-500 outline-none w-44">
-                        <option value="All" class="bg-neutral-900">All Sellers</option>
+        <!-- Controls Hub -->
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-wrap items-center gap-4">
+            <button type="button" onclick="openAddModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded font-bold text-sm transition shadow-lg shadow-emerald-900/50">
+                + Add New Stock
+            </button>
+            
+            <div class="w-px h-8 bg-gray-700 mx-2 hidden md:block"></div>
+            
+            <div class="flex items-center gap-2">
+                <label class="text-xs font-bold text-gray-500 uppercase">Seller</label>
+                <select id="filterSeller" onchange="renderTable()" class="bg-gray-800 border border-gray-700 rounded p-2 text-sm outline-none focus:border-pink-500 w-40">
+                    <option value="All">All Sellers</option>
+                </select>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <label class="text-xs font-bold text-gray-500 uppercase">Country</label>
+                <select id="filterCountry" onchange="renderTable()" class="bg-gray-800 border border-gray-700 rounded p-2 text-sm outline-none focus:border-pink-500 w-32">
+                    <option value="All">All Countries</option>
+                    <option value="KSA">KSA</option>
+                    <option value="UAE">UAE</option>
+                    <option value="QAT">QAT</option>
+                    <option value="KWT">KWT</option>
+                    <option value="IRQ">IRQ</option>
+                    <option value="OMN">OMN</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- The Table (This will not disappear!) -->
+        <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-2xl flex-1">
+            <div class="overflow-x-auto w-full">
+                <table class="w-full text-sm text-left whitespace-nowrap">
+                    <thead class="bg-black text-gray-400 border-b border-gray-800">
+                        <tr>
+                            <th class="p-4 font-semibold text-center">Delivered</th>
+                            <th class="p-4 font-semibold">Requested At</th>
+                            <th class="p-4 font-semibold">Seller</th>
+                            <th class="p-4 font-semibold">Quotation</th>
+                            <th class="p-4 font-semibold text-right">Qty</th>
+                            <th class="p-4 font-semibold text-center">Country</th>
+                            <th class="p-4 font-semibold text-center">Shipping</th>
+                            <th class="p-4 font-semibold">Payment Status</th>
+                            <th class="p-4 font-semibold">Payment Method</th>
+                            <th class="p-4 font-semibold text-right">Qty Delivered</th>
+                            <th class="p-4 font-semibold">Delivered Date</th>
+                            <th class="p-4 font-semibold text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-gray-800">
+                        <!-- Content goes here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal: Add New Stock -->
+    <div id="stockModal" class="modal-overlay">
+        <div class="bg-gray-900 border border-gray-700 w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden">
+            <div class="bg-maroon px-6 py-4 flex justify-between items-center text-white">
+                <h2 id="modalTitle" class="font-bold text-lg">Add New Stock</h2>
+                <button type="button" onclick="toggleModal('stockModal')" class="hover:text-gray-300 font-bold text-xl">✕</button>
+            </div>
+            <form id="stockForm" onsubmit="saveStock(event)" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="hidden" id="stockId">
+                
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-gray-400 font-bold">Requested At</label>
+                    <input type="date" id="reqDate" class="bg-gray-800 border border-gray-700 rounded p-2.5 text-sm focus:border-pink-500 outline-none" required>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-gray-400 font-bold">Account Manager (Seller)</label>
+                    <select id="seller" class="bg-gray-800 border border-gray-700 rounded p-2.5 text-sm focus:border-pink-500 outline-none" required></select>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-gray-400 font-bold">Quotation</label>
+                    <input type="text" id="quotation" placeholder="e.g. 58945" class="bg-gray-800 border border-gray-700 rounded p-2.5 text-sm focus:border-pink-500 outline-none" required>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-gray-400 font-bold">Quantity</label>
+                    <input type="number" id="qty" placeholder="0" class="bg-gray-800 border border-gray-700 rounded p-2.5 text-sm focus:border-pink-500 outline-none" required>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-gray-400 font-bold">Destination Country</label>
+                    <select id="country" class="bg-gray-800 border border-gray-700 rounded p-2.5 text-sm focus:border-pink-500 outline-none">
+                        <option value="KSA">KSA</option><option value="UAE">UAE</option><option value="QAT">QAT</option>
+                        <option value="KWT">KWT</option><option value="IRQ">IRQ</option><option value="OMN">OMN</option>
                     </select>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Country</span>
-                    <select id="filterCountry" onchange="renderTable()" class="bg-white/5 border border-white/10 text-gray-300 text-sm rounded-lg p-2 focus:ring-1 focus:ring-pink-500 outline-none w-32">
-                        <option value="All" class="bg-neutral-900">All</option>
-                        <option value="KSA"
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-gray-400 font-bold">Shipping Method</label>
+                    <select id="shipping" class="bg-gray-800 border border-gray-700 rounded p-2.5 text-sm focus:border-pink-500 outline-none">
+                        <option value="Air freight">Air Freight</option><option value="Ocean freight">Ocean Freight</option><option value="Local Market">Local Market</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-gray-400 font-bold">Payment Status</label>
+                    <select id="payStatus" class="bg-gray-800 border border-gray-700 rounded p-2.5 text-sm focus:border-pink-500 outline-none">
+                        <option value="Approved">Approved</option><option value="Paid">Paid</option><option value="Deposit">Deposit</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-gray-400 font-bold">Payment Method</label>
+                    <select id="payMethod" class="bg-gray-800 border border-gray-700 rounded p-2.5 text-sm focus:border-pink-500 outline-none" required></select>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-gray-400 font-bold">Qty Delivered (Optional)</label>
+                    <input type="number" id="qtyDelivered" placeholder="0" class="bg-gray-800 border border-gray-700 rounded p-2.5 text-sm focus:border-pink-500 outline-none">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-gray-400 font-bold">Delivered Date (Optional)</label>
+                    <input type="date" id="delDate" class="bg-gray-800 border border-gray-700 rounded p-2.5 text-sm focus:border-pink-500 outline-none">
+                </div>
+
+                <div class="col-span-1 md:col-span-2 flex justify-end gap-3 mt-4 pt-4 border-t border-gray-800">
+                    <button type="button" onclick="toggleModal('stockModal')" class="bg-gray-700 hover:bg-gray-600 text-white px-5 py-2 rounded font-semibold text-sm">Cancel</button>
+                    <button type="submit" class="bg-pink-700 hover:bg-pink-600 text-white px-5 py-2 rounded font-semibold text-sm">Save Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Settings -->
+    <div id="settingsModal" class="modal-overlay">
+        <div class="bg-gray-900 border border-gray-700 w-full max-w-xl rounded-xl shadow-2xl overflow-hidden">
+            <div class="bg-maroon px-6 py-4 flex justify-between items-center text-white">
+                <h2 class="font-bold text-lg">Configure Dropdowns</h2>
+                <button type="button" onclick="toggleModal('settingsModal')" class="hover:text-gray-300 font-bold text-xl">✕</button>
+            </div>
+            
+            <div class="p-6 flex flex-col gap-6">
+                <!-- Sellers -->
+                <div class="flex flex-col gap-2">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase">Account Managers (Sellers)</h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="newSeller" placeholder="Add a name..." class="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm flex-1 outline-none focus:border-pink-500">
+                        <button type="button" onclick="addListItem('sellers', 'newSeller')" class="bg-pink-700 hover:bg-pink-600 text-white px-4 rounded font-bold">+</button>
+                    </div>
+                    <ul id="sellerList" class="bg-gray-800 border border-gray-700 rounded p-2 max-h-40 overflow-y-auto flex flex-col gap-1 text-sm"></ul>
+                </div>
+                
+                <!-- Payment Methods -->
+                <div class="flex flex-col gap-2">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase">Payment Methods</h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="newPayMethod" placeholder="Add a method..." class="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm flex-1 outline-none focus:border-pink-500">
+                        <button type="button" onclick="addListItem('payMethods', 'newPayMethod')" class="bg-pink-700 hover:bg-pink-600 text-white px-4 rounded font-bold">+</button>
+                    </div>
+                    <ul id="payMethodList" class="bg-gray-800 border border-gray-700 rounded p-2 max-h-40 overflow-y-auto flex flex-col gap-1 text-sm"></ul>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 bg-gray-950 flex justify-end border-t border-gray-800">
+                <button type="button" onclick="toggleModal('settingsModal')" class="bg-gray-700 hover:bg-gray-600 text-white px-6 py-2 rounded font-semibold text-sm">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Javascript -->
+    <script>
+        const STORAGE_KEY = 'stocksApp_V3_Stable';
+        let appData = { sellers: [], payMethods: [], stocks: [] };
+
+        // Load data on startup
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                appData = JSON.parse(saved);
+            }
+        } catch (e) {
+            console.warn("Could not load data. Starting fresh.");
+        }
+
+        // Save data function
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+            updateDropdowns();
+            renderTable();
+        }
+
+        // Extremely reliable Modal Toggle
+        function toggleModal(id) {
+            const modal = document.getElementById(id);
+            if (modal.style.display === 'flex') {
+                modal.style.display = 'none';
+            } else {
+                modal.style.display = 'flex';
+            }
+        }
+
+        // Settings logic
+        function addListItem(listName, inputId) {
+            const input = document.getElementById(inputId);
+            const val = input.value.trim();
+            if (val && !appData[listName].includes(val)) {
+                appData[listName].push(val);
+                input.value = '';
+                saveData();
+                renderSettingsLists();
+            }
+        }
+
+        function removeListItem(listName, index) {
+            appData[listName].splice(index, 1);
+            saveData();
+            renderSettingsLists();
+        }
+
+        function renderSettingsLists() {
+            const sList = document.getElementById('sellerList');
+            if (appData.sellers.length === 0) {
+                sList.innerHTML = `<li class="text-gray-500 text-center py-2">No sellers created yet.</li>`;
+            } else {
+                sList.innerHTML = appData.sellers.map((s, i) => `
+                    <li class="flex justify-between items-center py-1 px-2 hover:bg-gray-700 rounded">
+                        <span>${s}</span> 
+                        <button type="button" onclick="removeListItem('sellers', ${i})" class="text-red-400 font-bold hover:text-red-300">✕</button>
+                    </li>
+                `).join('');
+            }
+
+            const pList = document.getElementById('payMethodList');
+            if (appData.payMethods.length === 0) {
+                pList.innerHTML = `<li class="text-gray-500 text-center py-2">No payment methods created yet.</li>`;
+            } else {
+                pList.innerHTML = appData.payMethods.map((p, i) => `
+                    <li class="flex justify-between items-center py-1 px-2 hover:bg-gray-700 rounded">
+                        <span>${p}</span> 
+                        <button type="button" onclick="removeListItem('payMethods', ${i})" class="text-red-400 font-bold hover:text-red-300">✕</button>
+                    </li>
+                `).join('');
+            }
+        }
+
+        function updateDropdowns() {
+            const sSelect = document.getElementById('seller');
+            sSelect.innerHTML = appData.sellers.length > 0
+                ? appData.sellers.map(s => `<option value="${s}">${s}</option>`).join('')
+                : `<option value="" disabled selected>No sellers found</option>`;
+            
+            const pSelect = document.getElementById('payMethod');
+            pSelect.innerHTML = appData.payMethods.length > 0
+                ? appData.payMethods.map(p => `<option value="${p}">${p}</option>`).join('')
+                : `<option value="" disabled selected>No payment methods found</option>`;
+
+            const fSeller = document.getElementById('filterSeller');
+            const currentFilter = fSeller.value;
+            fSeller.innerHTML = `<option value="All">All Sellers</option>` + appData.sellers.map(s => `<option value="${s}">${s}</option>`).join('');
+            fSeller.value = appData.sellers.includes(currentFilter) ? currentFilter : "All";
+        }
+
+        function toggleDelivered(id, isChecked) {
+            const index = appData.stocks.findIndex(s => s.id === id);
+            if (index > -1) {
+                appData.stocks[index].isDelivered = isChecked;
+                if (isChecked) {
+                    if (!appData.stocks[index].qtyDelivered) appData.stocks[index].qtyDelivered = appData.stocks[index].qty;
+                    if (!appData.stocks[index].delDate) appData.stocks[index].delDate = new Date().toISOString().split('T')[0];
+                } else {
+                    appData.stocks[index].qtyDelivered = '';
+                    appData.stocks[index].delDate = '';
+                }
+                saveData();
+            }
+        }
+
+        // Form Logic
+        function openAddModal() {
+            if (appData.sellers.length === 0 || appData.payMethods.length === 0) {
+                alert("Please add at least one Account Manager (Seller) and Payment Method in the Settings menu (Top Right) before adding stocks!");
+                toggleModal('settingsModal');
+                return;
+            }
+            document.getElementById('stockForm').reset();
+            document.getElementById('stockId').value = '';
+            document.getElementById('modalTitle').innerText = "Add New Stock Record";
+            toggleModal('stockModal');
+        }
+
+        function editStock(id) {
+            const stock = appData.stocks.find(s => s.id === id);
+            if(stock) {
+                document.getElementById('stockId').value = stock.id;
+                document.getElementById('reqDate').value = stock.reqDate;
+                document.getElementById('seller').value = stock.seller;
+                document.getElementById('quotation').value = stock.quotation;
+                document.getElementById('qty').value = stock.qty;
+                document.getElementById('country').value = stock.country;
+                document.getElementById('shipping').value = stock.shipping;
+                document.getElementById('payStatus').value = stock.payStatus;
+                document.getElementById('payMethod').value = stock.payMethod;
+                document.getElementById('qtyDelivered').value = stock.qtyDelivered || '';
+                document.getElementById('delDate').value = stock.delDate || '';
+                
+                document.getElementById('modalTitle').innerText = "Edit Stock Record";
+                toggleModal('stockModal');
+            }
+        }
+
+        function deleteStock(id) {
+            if(confirm("Are you sure you want to delete this row entirely?")) {
+                appData.stocks = appData.stocks.filter(s => s.id !== id);
+                saveData();
+            }
+        }
+
+        function saveStock(e) {
+            e.preventDefault();
+            const idVal = document.getElementById('stockId').value;
+            const existingStock = idVal ? appData.stocks.find(s => s.id === parseInt(idVal)) : null;
+
+            const stockData = {
+                id: idVal ? parseInt(idVal) : Date.now(),
+                reqDate: document.getElementById('reqDate').value,
+                seller: document.getElementById('seller').value,
+                quotation: document.getElementById('quotation').value,
+                qty: parseInt(document.getElementById('qty').value) || 0,
+                country: document.getElementById('country').value,
+                shipping: document.getElementById('shipping').value,
+                payStatus: document.getElementById('payStatus').value,
+                payMethod: document.getElementById('payMethod').value,
+                qtyDelivered: document.getElementById('qtyDelivered').value,
+                delDate: document.getElementById('delDate').value,
+                isDelivered: existingStock ? (existingStock.isDelivered || false) : false
+            };
+
+            // Auto-check if dates are provided
+            if(stockData.qtyDelivered || stockData.delDate) stockData.isDelivered = true;
+
+            if (idVal) { 
+                const index = appData.stocks.findIndex(s => s.id === parseInt(idVal));
+                appData.stocks[index] = stockData;
+            } else { 
+                appData.stocks.push(stockData);
+            }
+
+            saveData();
+            toggleModal('stockModal');
+        }
+
+        function getBadge(text) {
+            const colors = {
+                "KSA": "bg-emerald-900 text-emerald-400 border-emerald-800", 
+                "QAT": "bg-fuchsia-900 text-fuchsia-400 border-fuchsia-800", 
+                "UAE": "bg-yellow-900 text-yellow-400 border-yellow-800",
+                "KWT": "bg-indigo-900 text-indigo-400 border-indigo-800",
+                "IRQ": "bg-red-900 text-red-400 border-red-800",
+                "OMN": "bg-sky-900 text-sky-400 border-sky-800",
+                "Air freight": "bg-blue-900 text-blue-400 border-blue-800", 
+                "Local Market": "bg-amber-900 text-amber-500 border-amber-800", 
+                "Ocean freight": "bg-rose-900 text-rose-400 border-rose-800"
+            };
+            const theme = colors[text] || "bg-gray-800 text-gray-300 border-gray-700";
+            return `<span class="px-2 py-1 rounded text-xs font-bold border ${theme}">${text}</span>`;
+        }
+
+        function renderTable() {
+            const fSeller = document.getElementById('filterSeller').value;
+            const fCountry = document.getElementById('filterCountry').value;
+            
+            let filtered = appData.stocks;
+            if (fSeller !== "All") filtered = filtered.filter(s => s.seller === fSeller);
+            if (fCountry !== "All") filtered = filtered.filter(s => s.country === fCountry);
+
+            const tbody = document.getElementById('tableBody');
+
+            // Render Empty State
+            if(filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="12" class="p-12 text-center text-gray-500">
+                            <span class="text-3xl block mb-2">📦</span>
+                            <p>No records found. Click 'Manage Dropdowns' to add Sellers, then click 'Add New Stock'!</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(s => {
+                const isChecked = s.isDelivered ? 'checked' : '';
+                const rowStyle = s.isDelivered ? 'opacity-50 bg-black' : 'hover:bg-gray-800';
+                
+                return `
+                    <tr class="transition ${rowStyle}">
+                        <td class="p-4 text-center">
+                            <input type="checkbox" ${isChecked} onchange="toggleDelivered(${s.id}, this.checked)" class="w-4 h-4 cursor-pointer">
+                        </td>
+                        <td class="p-4 text-gray-400">${s.reqDate}</td>
+                        <td class="p-4 text-white font-bold">${s.seller}</td>
+                        <td class="p-4 text-gray-300 font-mono">${s.quotation}</td>
+                        <td class="p-4 text-right text-gray-200 font-bold">${s.qty.toLocaleString()}</td>
+                        <td class="p-4 text-center">${getBadge(s.country)}</td>
+                        <td class="p-4 text-center">${getBadge(s.shipping)}</td>
+                        <td class="p-4 font-bold ${s.isDelivered ? 'text-gray-500 line-through' : (s.payStatus==='Approved' ? 'text-emerald-400' : 'text-blue-400')}">${s.isDelivered ? 'Delivered' : s.payStatus}</td>
+                        <td class="p-4 text-gray-400">${s.payMethod}</td>
+                        <td class="p-4 text-right font-bold text-gray-300">${s.qtyDelivered ? parseInt(s.qtyDelivered).toLocaleString() : '-'}</td>
+                        <td class="p-4 text-gray-400">${s.delDate || '-'}</td>
+                        <td class="p-4 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <button type="button" onclick="editStock(${s.id})" class="text-blue-400 hover:text-blue-300">✏️</button>
+                                <button type="button" onclick="deleteStock(${s.id})" class="text-red-400 hover:text-red-300">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Initialize On Load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDropdowns();
+            renderSettingsLists();
+            renderTable();
+        });
+    </script>
+</body>
+</html>
