@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Tracker Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .table-container {
+            overflow-x: auto;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            white-space: nowrap;
+        }
+        th {
+            background-color: #7b2c52; /* Maroon */
+            color: white;
+            padding: 12px 15px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            border: 1px solid #993b69;
+        }
+        td {
+            padding: 10px 15px;
+            border: 1px solid #d1d5db;
+            font-size: 13px;
+            text-align: center;
+        }
+        .month-divider td {
+            background-color: #b57b98; /* Light Purple/Pink */
+            color: white;
+            font-weight: bold;
+            padding: 8px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .row-green td {
+            background-color: #e8f5e9; /* Light Green */
+        }
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        /* Badge Colors */
+        .bg-qat { background-color: #5b2c6f; }
+        .bg-ksa { background-color: #0e6655; }
+        .bg-uae { background-color: #d4ac0d; color: black; }
+        .bg-air { background-color: #2874a6; }
+        .bg-local { background-color: #1e8449; }
+        .bg-ocean { background-color: #c0392b; }
+    </style>
+</head>
+<body>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Requested at</th>
+                    <th>Seller</th>
+                    <th>Quotation</th>
+                    <th>Qty</th>
+                    <th>Destination Country</th>
+                    <th>Shipping Method</th>
+                    <th>Payment status</th>
+                    <th>Payment method</th>
+                    <th>Qty delivered</th>
+                    <th>Deducted</th>
+                    <th>Delivered Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- June Section -->
+                <tr class="month-divider">
+                    <td colspan="11">June</td>
+                </tr>
+                <tr class="row-green">
+                    <td>5/15/2026</td>
+                    <td>Yassine Chelkhine</td>
+                    <td>56796</td>
+                    <td>1000</td>
+                    <td><span class="badge bg-qat">QAT</span></td>
+                    <td><span class="badge bg-air">Air freight</span></td>
+                    <td>Approved</td>
+                    <td>Stock Arrival</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr class="row-green">
+                    <td>6/20/2026</td>
+                    <td>KHADIJA ELKHAOULI</td>
+                    <td>57410</td>
+                    <td>5000</td>
+                    <td><span class="badge bg-ksa">KSA</span></td>
+                    <td><span class="badge bg-air">Air freight</span></td>
+                    <td>Paid</td>
+                    <td>Split/From next Inv</td>
+                    <td>5006</td>
+                    <td></td>
+                    <td>2026-08-07</td>
+                </tr>
+                <tr class="row-green">
+                    <td>6/27/2026</td>
+                    <td>Mouad Nadif</td>
+                    <td>58272</td>
+                    <td>300</td>
+                    <td><span class="badge bg-ksa">KSA</span></td>
+                    <td><span class="badge bg-ocean">Ocean f...</span></td>
+                    <td>Paid</td>
+                    <td>Stock Arrival</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+
+                <!-- July Section -->
+                <tr class="month-divider">
+                    <td colspan="11">July</td>
+                </tr>
+                <tr class="row-green">
+                    <td>7/3/2026</td>
+                    <td>Amali</td>
+                    <td>58743</td>
+                    <td>576</td>
+                    <td><span class="badge bg-ksa">KSA</span></td>
+                    <td><span class="badge bg-local">Local M...</span></td>
+                    <td>Approved</td>
+                    <td>StockArrival</td>
+                    <td>576</td>
+                    <td></td>
+                    <td>2026-07-06</td>
+                </tr>
+                <tr class="row-green">
+                    <td>7/8/2026</td>
+                    <td>abdelhaK yhek</td>
+                    <td>58854</td>
+                    <td>50</td>
+                    <td><span class="badge bg-uae">UAE</span></td>
+                    <td><span class="badge bg-local">Local M...</span></td>
+                    <td>Deposit</td>
+                    <td>StockArrival</td>
+                    <td>50</td>
+                    <td></td>
+                    <td>2026-07-11</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>
