@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,32 +7,39 @@
 <meta name="theme-color" content="#120e10">
 <title>Upcoming Stocks — Portfolio Manager</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
-  body{background:#120e10;font-family:ui-sans-serif,system-ui,sans-serif}
-  .bg-maroon{background:#7b2c52}.text-maroon{color:#d46596}
-  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.86);z-index:60;align-items:center;justify-content:center;padding:1rem}
-  .field{background:#1f2937;border:1px solid #374151;border-radius:.5rem;padding:.65rem .75rem;width:100%;color:#f3f4f6;outline:none}
-  .field:focus{border-color:#d46596;box-shadow:0 0 0 2px rgba(212,101,150,.15)}
-  .btn{border-radius:.5rem;padding:.6rem .9rem;font-size:.875rem;font-weight:650;transition:.15s}
-  .kpi{background:#111827;border:1px solid #293241;border-radius:.85rem;padding:1rem}
-  .kpi-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;font-weight:700}
-  .kpi-value{font-size:1.65rem;font-weight:800;color:#fff;margin-top:.25rem}
-  .badge{display:inline-block;padding:.25rem .55rem;border-radius:.4rem;font-size:.72rem;font-weight:750;border:1px solid}
-  .table-wrap{overflow:auto}
-  th{position:sticky;top:0;background:#09090b;z-index:2}
-  input[type=date],input[type=number]{color-scheme:dark}
-  .muted{color:#9ca3af}
-  @media(max-width:640px){main{padding:1rem!important}.kpi-value{font-size:1.35rem}}
+body{background:#120e10;font-family:ui-sans-serif,system-ui,sans-serif}
+.bg-maroon{background:#7b2c52}.text-maroon{color:#d46596}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.86);z-index:60;align-items:center;justify-content:center;padding:1rem}
+.field{background:#1f2937;border:1px solid #374151;border-radius:.5rem;padding:.65rem .75rem;width:100%;color:#f3f4f6;outline:none}
+.field:focus{border-color:#d46596;box-shadow:0 0 0 2px rgba(212,101,150,.15)}
+.btn{border-radius:.5rem;padding:.6rem .9rem;font-size:.875rem;font-weight:650;transition:.15s}
+.kpi{background:#111827;border:1px solid #293241;border-radius:.85rem;padding:1rem}
+.kpi-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:#9ca3af;font-weight:700}
+.kpi-value{font-size:1.65rem;font-weight:800;color:#fff;margin-top:.25rem}
+.badge{display:inline-block;padding:.25rem .55rem;border-radius:.4rem;font-size:.72rem;font-weight:750;border:1px solid}
+.table-wrap{overflow:auto}
+th{position:sticky;top:0;background:#09090b;z-index:2}
+input[type=date],input[type=number]{color-scheme:dark}
+.muted{color:#9ca3af}
+@media(max-width:640px){main{padding:1rem!important}.kpi-value{font-size:1.35rem}}
 </style>
 </head>
 <body class="text-gray-200 min-h-screen flex flex-col antialiased">
+
 <header class="border-b border-gray-800 bg-[#0a0809] p-4 sticky top-0 z-40">
  <div class="max-w-[1600px] mx-auto flex flex-wrap justify-between items-center gap-3">
   <div class="flex items-center gap-3">
    <div class="w-10 h-10 rounded-lg bg-maroon flex items-center justify-center font-bold text-white">US</div>
-   <div><h1 class="text-xl font-bold text-white tracking-wide">UPCOMING STOCKS</h1><p class="text-xs text-gray-400">Personal Portfolio Manager · Data stays in this browser</p></div>
+   <div>
+    <h1 class="text-xl font-bold text-white tracking-wide">UPCOMING STOCKS</h1>
+    <p class="text-xs text-gray-400">Personal Portfolio Manager · Data stays in this browser</p>
+   </div>
   </div>
   <div class="flex flex-wrap gap-2">
+   <button class="btn bg-emerald-700 hover:bg-emerald-600 text-white" onclick="document.getElementById('sheetImportFile').click()">↑ Import Spreadsheet</button>
+   <input id="sheetImportFile" type="file" accept=".xlsx,.xls,.csv,.tsv" class="hidden" onchange="handleSpreadsheetImport(event)">
    <button class="btn bg-blue-700 hover:bg-blue-600 text-white" onclick="exportToCSV()">↓ Export CSV</button>
    <input id="importFile" type="file" accept=".json,application/json" class="hidden" onchange="importBackup(event)">
    <button class="btn bg-gray-800 hover:bg-gray-700 text-white" onclick="toggleModal('settingsModal')">⚙ Manage Dropdowns</button>
@@ -40,17 +48,27 @@
 </header>
 
 <main class="max-w-[1600px] w-full mx-auto p-6 flex flex-col gap-5 flex-1">
- <section class="grid grid-cols-2 lg:grid-cols-5 gap-3" aria-label="Portfolio summary">
+
+ <section class="grid grid-cols-2 lg:grid-cols-5 gap-3">
   <div class="kpi"><div class="kpi-label">Total records</div><div id="kpiRecords" class="kpi-value">0</div></div>
   <div class="kpi"><div class="kpi-label">Requested quantity</div><div id="kpiRequested" class="kpi-value">0</div></div>
   <div class="kpi"><div class="kpi-label">Delivered quantity</div><div id="kpiDelivered" class="kpi-value">0</div></div>
   <div class="kpi"><div class="kpi-label">Remaining quantity</div><div id="kpiRemaining" class="kpi-value">0</div></div>
-  <div class="kpi col-span-2 lg:col-span-1"><div class="kpi-label">Delivery progress</div><div id="kpiProgress" class="kpi-value">0%</div><div class="h-2 bg-gray-700 rounded-full mt-2 overflow-hidden"><div id="progressBar" class="h-full bg-emerald-500 rounded-full" style="width:0%"></div></div></div>
+  <div class="kpi col-span-2 lg:col-span-1">
+   <div class="kpi-label">Delivery progress</div>
+   <div id="kpiProgress" class="kpi-value">0%</div>
+   <div class="h-2 bg-gray-700 rounded-full mt-2 overflow-hidden">
+    <div id="progressBar" class="h-full bg-emerald-500 rounded-full" style="width:0%"></div>
+   </div>
+  </div>
  </section>
 
  <section class="grid grid-cols-1 lg:grid-cols-3 gap-3">
   <div class="kpi lg:col-span-2">
-   <div class="flex justify-between items-center mb-3"><h2 class="font-bold text-white">Stock by destination</h2><span class="text-xs muted">Requested quantity</span></div>
+   <div class="flex justify-between items-center mb-3">
+    <h2 class="font-bold text-white">Stock by destination</h2>
+    <span class="text-xs muted">Requested quantity</span>
+   </div>
    <div id="countryBreakdown" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
   </div>
   <div class="kpi">
@@ -69,21 +87,33 @@
   <select id="filterStatus" class="field w-auto" onchange="renderTable()">
    <option value="All">All delivery statuses</option><option value="Pending">Not delivered</option><option value="Partial">Partially delivered</option><option value="Delivered">Fully delivered</option>
   </select>
-  <select id="filterPayment" class="field w-auto" onchange="renderTable()"><option value="All">All payment statuses</option><option>Approved</option><option>Paid</option><option>Deposit</option></select>
-  <select id="filterShipping" class="field w-auto" onchange="renderTable()"><option value="All">All shipping methods</option><option>Air freight</option><option>Ocean freight</option><option>Local Market</option></select>
+  <select id="filterPayment" class="field w-auto" onchange="renderTable()">
+   <option value="All">All payment statuses</option><option>Approved</option><option>Paid</option><option>Deposit</option>
+  </select>
+  <select id="filterShipping" class="field w-auto" onchange="renderTable()">
+   <option value="All">All shipping methods</option><option>Air freight</option><option>Ocean freight</option><option>Local Market</option>
+  </select>
   <input id="dateFrom" type="date" class="field w-auto" title="Requested from" onchange="renderTable()">
   <input id="dateTo" type="date" class="field w-auto" title="Requested to" onchange="renderTable()">
-  <select id="sortBy" class="field w-auto" onchange="renderTable()"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="qtyHigh">Quantity: high to low</option><option value="qtyLow">Quantity: low to high</option><option value="seller">Seller A–Z</option></select>
+  <select id="sortBy" class="field w-auto" onchange="renderTable()">
+   <option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="qtyHigh">Quantity: high to low</option><option value="qtyLow">Quantity: low to high</option><option value="seller">Seller A–Z</option>
+  </select>
   <button onclick="clearFilters()" class="btn bg-gray-700 hover:bg-gray-600 text-white">Clear filters</button>
  </section>
 
  <section class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-2xl flex-1">
-  <div class="px-4 py-3 border-b border-gray-800 flex justify-between items-center gap-3"><div><h2 class="font-bold text-white">Stock records</h2><p id="recordCount" class="text-xs muted">0 records</p></div><span class="text-xs muted hidden sm:block">Select Edit to update quantities or delivery details</span></div>
+  <div class="px-4 py-3 border-b border-gray-800 flex justify-between items-center gap-3">
+   <div><h2 class="font-bold text-white">Stock records</h2><p id="recordCount" class="text-xs muted">0 records</p></div>
+   <span class="text-xs muted hidden sm:block">Select Edit to update quantities or delivery details</span>
+  </div>
   <div class="table-wrap w-full">
    <table class="w-full text-sm text-left whitespace-nowrap">
-    <thead class="text-gray-400 border-b border-gray-800"><tr>
-     <th class="p-3">Delivery</th><th class="p-3">Requested</th><th class="p-3">Seller</th><th class="p-3">Quotation</th><th class="p-3 text-right">Qty</th><th class="p-3">Country</th><th class="p-3">Shipping</th><th class="p-3">Payment</th><th class="p-3">Payment method</th><th class="p-3 text-right">Delivered</th><th class="p-3 text-right">Remaining</th><th class="p-3">Delivered date</th><th class="p-3 text-center">Actions</th>
-    </tr></thead><tbody id="tableBody" class="divide-y divide-gray-800"></tbody>
+    <thead class="text-gray-400 border-b border-gray-800">
+     <tr>
+      <th class="p-3">Delivery</th><th class="p-3">Requested</th><th class="p-3">Seller</th><th class="p-3">Quotation</th><th class="p-3 text-right">Qty</th><th class="p-3">Country</th><th class="p-3">Shipping</th><th class="p-3">Payment</th><th class="p-3">Payment method</th><th class="p-3 text-right">Delivered</th><th class="p-3 text-right">Remaining</th><th class="p-3">Delivered date</th><th class="p-3 text-center">Actions</th>
+     </tr>
+    </thead>
+    <tbody id="tableBody" class="divide-y divide-gray-800"></tbody>
    </table>
   </div>
  </section>
@@ -92,7 +122,10 @@
 
 <div id="stockModal" class="modal-overlay">
  <div class="bg-gray-900 border border-gray-700 w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto">
-  <div class="bg-maroon px-6 py-4 flex justify-between items-center text-white"><h2 id="modalTitle" class="font-bold text-lg">Add New Stock</h2><button onclick="toggleModal('stockModal')" class="text-xl">✕</button></div>
+  <div class="bg-maroon px-6 py-4 flex justify-between items-center text-white">
+   <h2 id="modalTitle" class="font-bold text-lg">Add New Stock</h2>
+   <button onclick="toggleModal('stockModal')" class="text-xl">✕</button>
+  </div>
   <form id="stockForm" onsubmit="saveStock(event)" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
    <input type="hidden" id="stockId">
    <label class="text-xs text-gray-400 font-bold">Requested date<input type="date" id="reqDate" class="field mt-1" required></label>
@@ -106,204 +139,879 @@
    <label class="text-xs text-gray-400 font-bold">Quantity delivered<input type="number" id="qtyDelivered" min="0" step="1" class="field mt-1" placeholder="0"></label>
    <label class="text-xs text-gray-400 font-bold">Last delivery date<input type="date" id="delDate" class="field mt-1"></label>
    <p class="md:col-span-2 text-xs text-gray-500">Delivery status is calculated from delivered quantity: zero = pending, less than requested = partial, equal to requested = delivered.</p>
-   <div class="md:col-span-2 flex justify-end gap-3 mt-2 pt-4 border-t border-gray-800"><button type="button" onclick="toggleModal('stockModal')" class="btn bg-gray-700 text-white">Cancel</button><button type="submit" class="btn bg-pink-700 hover:bg-pink-600 text-white">Save Record</button></div>
+   <div class="md:col-span-2 flex justify-end gap-3 mt-2 pt-4 border-t border-gray-800">
+    <button type="button" onclick="toggleModal('stockModal')" class="btn bg-gray-700 text-white">Cancel</button>
+    <button type="submit" class="btn bg-pink-700 hover:bg-pink-600 text-white">Save Record</button>
+   </div>
   </form>
  </div>
 </div>
 
 <div id="settingsModal" class="modal-overlay">
  <div class="bg-gray-900 border border-gray-700 w-full max-w-xl rounded-xl shadow-2xl overflow-hidden max-h-[95vh] overflow-y-auto">
-  <div class="bg-maroon px-6 py-4 flex justify-between items-center text-white"><h2 class="font-bold text-lg">Manage Dropdowns</h2><button onclick="toggleModal('settingsModal')" class="text-xl">✕</button></div>
+  <div class="bg-maroon px-6 py-4 flex justify-between items-center text-white">
+   <h2 class="font-bold text-lg">Manage Dropdowns</h2>
+   <button onclick="toggleModal('settingsModal')" class="text-xl">✕</button>
+  </div>
   <div class="p-6 flex flex-col gap-6">
-   <div><h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Account Managers / Sellers</h3><div class="flex gap-2"><input id="newSeller" class="field" placeholder="Add a name..." maxlength="80"><button onclick="addListItem('sellers','newSeller')" class="btn bg-pink-700 text-white">Add</button></div><ul id="sellerList" class="mt-2 bg-gray-800 rounded p-2 max-h-40 overflow-y-auto space-y-1 text-sm"></ul></div>
-   <div><h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Payment methods</h3><div class="flex gap-2"><input id="newPayMethod" class="field" placeholder="Add a method..." maxlength="80"><button onclick="addListItem('payMethods','newPayMethod')" class="btn bg-pink-700 text-white">Add</button></div><ul id="payMethodList" class="mt-2 bg-gray-800 rounded p-2 max-h-40 overflow-y-auto space-y-1 text-sm"></ul></div>
+   <div>
+    <h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Account Managers / Sellers</h3>
+    <div class="flex gap-2"><input id="newSeller" class="field" placeholder="Add a name..." maxlength="80"><button onclick="addListItem('sellers','newSeller')" class="btn bg-pink-700 text-white">Add</button></div>
+    <ul id="sellerList" class="mt-2 bg-gray-800 rounded p-2 max-h-40 overflow-y-auto space-y-1 text-sm"></ul>
+   </div>
+   <div>
+    <h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Payment methods</h3>
+    <div class="flex gap-2"><input id="newPayMethod" class="field" placeholder="Add a method..." maxlength="80"><button onclick="addListItem('payMethods','newPayMethod')" class="btn bg-pink-700 text-white">Add</button></div>
+    <ul id="payMethodList" class="mt-2 bg-gray-800 rounded p-2 max-h-40 overflow-y-auto space-y-1 text-sm"></ul>
+   </div>
   </div>
   <div class="px-6 py-4 bg-gray-950 flex justify-end"><button onclick="toggleModal('settingsModal')" class="btn bg-gray-700 text-white">Done</button></div>
  </div>
 </div>
+
+<div id="importPreviewModal" class="modal-overlay">
+ <div class="bg-gray-900 border border-gray-700 w-full max-w-5xl rounded-xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
+  <div class="bg-maroon px-6 py-4 flex justify-between items-center text-white">
+   <div><h2 class="font-bold text-lg">Spreadsheet import preview</h2><p id="importFileName" class="text-xs text-pink-100 mt-1"></p></div>
+   <button onclick="closeImportPreview()" class="text-xl">✕</button>
+  </div>
+  <div class="p-4 overflow-auto flex-1">
+   <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+    <div class="kpi"><div class="kpi-label">Rows found</div><div id="importFound" class="kpi-value">0</div></div>
+    <div class="kpi"><div class="kpi-label">Ready to import</div><div id="importReady" class="kpi-value text-emerald-300">0</div></div>
+    <div class="kpi"><div class="kpi-label">Duplicates skipped</div><div id="importDuplicates" class="kpi-value text-amber-300">0</div></div>
+    <div class="kpi"><div class="kpi-label">Invalid rows</div><div id="importInvalid" class="kpi-value text-red-300">0</div></div>
+   </div>
+   <p class="text-xs text-gray-400 mb-3">Existing records will be kept. Rows with duplicate quotations or missing required fields are skipped. Seller and payment-method names found in the sheet will be added to your dropdowns.</p>
+   <div class="table-wrap border border-gray-800 rounded-lg">
+    <table class="w-full text-sm text-left whitespace-nowrap">
+     <thead><tr class="text-gray-400"><th class="p-2">Result</th><th class="p-2">Requested date</th><th class="p-2">Seller</th><th class="p-2">Quotation</th><th class="p-2">Qty</th><th class="p-2">Country</th><th class="p-2">Reason</th></tr></thead>
+     <tbody id="importPreviewBody" class="divide-y divide-gray-800"></tbody>
+    </table>
+   </div>
+  </div>
+  <div class="px-6 py-4 bg-gray-950 flex justify-end gap-3">
+   <button onclick="closeImportPreview()" class="btn bg-gray-700 text-white">Cancel</button>
+   <button id="confirmImportBtn" onclick="confirmSpreadsheetImport()" class="btn bg-emerald-700 hover:bg-emerald-600 text-white">Import valid rows</button>
+  </div>
+ </div>
+</div>
+
 <div id="toast" class="fixed bottom-5 right-5 z-[100] hidden bg-gray-800 border border-gray-600 text-white px-4 py-3 rounded-lg shadow-xl text-sm" role="status"></div>
 
 <script>
 'use strict';
+
 const STORAGE_KEY='stocksApp_V4_Filters';
 const DEFAULT_PAY_METHODS=['STOCK ARRIVAL','SPLIT','From Next Invoice'];
 const COUNTRIES=['KSA','UAE','QAT','KWT','IRQ','OMN'];
+
 let appData={sellers:[],payMethods:[...DEFAULT_PAY_METHODS],stocks:[]};
 
 function todayLocal(){
- const d=new Date(); const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+ const d=new Date();
+ const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
  return `${y}-${m}-${day}`;
 }
-function safeInt(v,min=0){const n=Number(v);return Number.isSafeInteger(n)&&n>=min?n:null}
-function cleanText(v,max=200){return String(v??'').trim().slice(0,max)}
+
+function safeInt(v,min=0){
+ const n=Number(v);
+ return Number.isSafeInteger(n)&&n>=min?n:null;
+}
+
+function cleanText(v,max=200){
+ return String(v??'').trim().slice(0,max);
+}
+
 function escapeCSV(v){
  let s=String(v??'');
- if(/^[\s]*[=+\-@]/.test(s)) s="'"+s;
+ if(/^[\s]*[=+\-@]/.test(s))s="'"+s;
  return '"'+s.replace(/"/g,'""')+'"';
 }
+
 function getDeliveryStatus(s){
- const requested=Math.max(0,Number(s.qty)||0),delivered=Math.min(requested,Math.max(0,Number(s.qtyDelivered)||0));
- if(delivered===0)return 'Pending'; if(delivered>=requested)return 'Delivered'; return 'Partial';
+ const requested=Math.max(0,Number(s.qty)||0);
+ const delivered=Math.min(requested,Math.max(0,Number(s.qtyDelivered)||0));
+ if(delivered===0)return 'Pending';
+ if(delivered>=requested)return 'Delivered';
+ return 'Partial';
 }
+
 function loadData(){
  try{
   const raw=localStorage.getItem(STORAGE_KEY);
   if(!raw)return;
   const parsed=JSON.parse(raw);
   if(!parsed||typeof parsed!=='object')throw new Error('Invalid saved data');
+
   appData.sellers=Array.isArray(parsed.sellers)?parsed.sellers.map(x=>cleanText(x,80)).filter(Boolean):[];
   appData.payMethods=Array.isArray(parsed.payMethods)&&parsed.payMethods.length?parsed.payMethods.map(x=>cleanText(x,80)).filter(Boolean):[...DEFAULT_PAY_METHODS];
+
   appData.stocks=Array.isArray(parsed.stocks)?parsed.stocks.map(s=>({
    id:Number.isSafeInteger(Number(s.id))?Number(s.id):Date.now()+Math.floor(Math.random()*100000),
-   reqDate:cleanText(s.reqDate,10),seller:cleanText(s.seller,80),quotation:cleanText(s.quotation,100),
-   qty:Math.max(0,Number(s.qty)||0),country:COUNTRIES.includes(s.country)?s.country:'KSA',
+   reqDate:cleanText(s.reqDate,10),
+   seller:cleanText(s.seller,80),
+   quotation:cleanText(s.quotation,100),
+   qty:Math.max(0,Number(s.qty)||0),
+   country:COUNTRIES.includes(s.country)?s.country:'KSA',
    shipping:['Air freight','Ocean freight','Local Market'].includes(s.shipping)?s.shipping:'Air freight',
    payStatus:['Approved','Paid','Deposit'].includes(s.payStatus)?s.payStatus:'Approved',
-   payMethod:cleanText(s.payMethod,80),qtyDelivered:Math.max(0,Number(s.qtyDelivered)||0),
-   delDate:cleanText(s.delDate,10),isDelivered:Boolean(s.isDelivered)
-  })): [];
-  // Preserve old checkbox-only completed records during migration.
-  appData.stocks=appData.stocks.map(s=>{if(s.isDelivered&&s.qtyDelivered===0)s.qtyDelivered=s.qty;return s;});
- }catch(err){console.error(err);alert('Saved data could not be read. The app has started with empty data. Do not overwrite your browser storage until you have recovered a backup.');}
+   payMethod:cleanText(s.payMethod,80),
+   qtyDelivered:Math.max(0,Number(s.qtyDelivered)||0),
+   delDate:cleanText(s.delDate,10),
+   isDelivered:Boolean(s.isDelivered)
+  })):[];
+
+  appData.stocks=appData.stocks.map(s=>{
+   if(s.isDelivered&&s.qtyDelivered===0)s.qtyDelivered=s.qty;
+   return s;
+  });
+ }catch(err){
+  console.error(err);
+  alert('Saved data could not be read. The app has started with empty data. Do not overwrite your browser storage until you have recovered a backup.');
+ }
 }
+
 function saveData(){
- try{localStorage.setItem(STORAGE_KEY,JSON.stringify(appData));}
- catch(err){console.error(err);alert('Could not save data. Browser storage may be full or unavailable. Export a backup and avoid closing this tab until the issue is resolved.');}
- updateDropdowns();renderSettingsLists();renderDashboard();renderTable();
+ try{
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(appData));
+ }catch(err){
+  console.error(err);
+  alert('Could not save data. Browser storage may be full or unavailable. Export a backup and avoid closing this tab until the issue is resolved.');
+ }
+ updateDropdowns();
+ renderSettingsLists();
+ renderDashboard();
+ renderTable();
 }
-function showToast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.remove('hidden');clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>el.classList.add('hidden'),2800);}
-function toggleModal(id){const el=document.getElementById(id);el.style.display=el.style.display==='flex'?'none':'flex';}
+
+function showToast(msg){
+ const el=document.getElementById('toast');
+ el.textContent=msg;
+ el.classList.remove('hidden');
+ clearTimeout(showToast.timer);
+ showToast.timer=setTimeout(()=>el.classList.add('hidden'),2800);
+}
+
+function toggleModal(id){
+ const el=document.getElementById(id);
+ el.style.display=el.style.display==='flex'?'none':'flex';
+}
+
 function addListItem(listName,inputId){
- const input=document.getElementById(inputId),val=cleanText(input.value,80);
+ const input=document.getElementById(inputId);
+ const val=cleanText(input.value,80);
  if(!val)return;
- if(appData[listName].some(x=>x.toLowerCase()===val.toLowerCase())){showToast('That item already exists.');return;}
- appData[listName].push(val);input.value='';saveData();
+ if(appData[listName].some(x=>x.toLowerCase()===val.toLowerCase())){
+  showToast('That item already exists.');
+  return;
+ }
+ appData[listName].push(val);
+ input.value='';
+ saveData();
 }
+
 function removeListItem(listName,index){
- const value=appData[listName][index];if(value===undefined)return;
+ const value=appData[listName][index];
+ if(value===undefined)return;
+
  if(listName==='sellers'&&appData.stocks.some(s=>s.seller===value)){
   if(!confirm(`"${value}" is used by existing records. Remove it from the dropdown? Existing records will be preserved.`))return;
  }
  if(listName==='payMethods'&&appData.stocks.some(s=>s.payMethod===value)){
   if(!confirm(`"${value}" is used by existing records. Remove it from the dropdown? Existing records will be preserved.`))return;
  }
- appData[listName].splice(index,1);saveData();
+
+ appData[listName].splice(index,1);
+ saveData();
 }
+
 function makeOption(value,label=value){
- const o=document.createElement('option');o.value=value;o.textContent=label;return o;
+ const o=document.createElement('option');
+ o.value=value;
+ o.textContent=label;
+ return o;
 }
+
 function updateDropdowns(){
- const seller=document.getElementById('seller'),pay=document.getElementById('payMethod'),filter=document.getElementById('filterSeller');
+ const seller=document.getElementById('seller');
+ const pay=document.getElementById('payMethod');
+ const filter=document.getElementById('filterSeller');
  const old=filter.value;
- seller.replaceChildren();pay.replaceChildren();filter.replaceChildren(makeOption('All','All sellers'));
- appData.sellers.forEach(s=>{seller.append(makeOption(s));filter.append(makeOption(s));});
+
+ seller.replaceChildren();
+ pay.replaceChildren();
+ filter.replaceChildren(makeOption('All','All sellers'));
+
+ appData.sellers.forEach(s=>{
+  seller.append(makeOption(s));
+  filter.append(makeOption(s));
+ });
  appData.payMethods.forEach(p=>pay.append(makeOption(p)));
+
  filter.value=appData.sellers.includes(old)?old:'All';
 }
+
 function renderSettingsLists(){
  for(const [key,id] of [['sellers','sellerList'],['payMethods','payMethodList']]){
-  const ul=document.getElementById(id);ul.replaceChildren();
-  if(!appData[key].length){const li=document.createElement('li');li.className='text-gray-500 text-center py-2';li.textContent='No items added yet.';ul.append(li);continue;}
+  const ul=document.getElementById(id);
+  ul.replaceChildren();
+
+  if(!appData[key].length){
+   const li=document.createElement('li');
+   li.className='text-gray-500 text-center py-2';
+   li.textContent='No items added yet.';
+   ul.append(li);
+   continue;
+  }
+
   appData[key].forEach((value,i)=>{
-   const li=document.createElement('li');li.className='flex justify-between items-center py-1 px-2 rounded hover:bg-gray-700';
-   const span=document.createElement('span');span.textContent=value;
-   const btn=document.createElement('button');btn.type='button';btn.textContent='Remove';btn.className='text-red-400 hover:text-red-300 text-xs font-bold';btn.addEventListener('click',()=>removeListItem(key,i));
-   li.append(span,btn);ul.append(li);
+   const li=document.createElement('li');
+   li.className='flex justify-between items-center py-1 px-2 rounded hover:bg-gray-700';
+
+   const span=document.createElement('span');
+   span.textContent=value;
+
+   const btn=document.createElement('button');
+   btn.type='button';
+   btn.textContent='Remove';
+   btn.className='text-red-400 hover:text-red-300 text-xs font-bold';
+   btn.addEventListener('click',()=>removeListItem(key,i));
+
+   li.append(span,btn);
+   ul.append(li);
   });
  }
 }
+
 function badge(text){
- const palette={KSA:'bg-emerald-900 text-emerald-300 border-emerald-800',QAT:'bg-fuchsia-900 text-fuchsia-300 border-fuchsia-800',UAE:'bg-yellow-900 text-yellow-300 border-yellow-800',KWT:'bg-indigo-900 text-indigo-300 border-indigo-800',IRQ:'bg-red-900 text-red-300 border-red-800',OMN:'bg-sky-900 text-sky-300 border-sky-800','Air freight':'bg-blue-900 text-blue-300 border-blue-800','Ocean freight':'bg-rose-900 text-rose-300 border-rose-800','Local Market':'bg-amber-900 text-amber-300 border-amber-800'};
- const span=document.createElement('span');span.className=`badge ${palette[text]||'bg-gray-800 text-gray-300 border-gray-700'}`;span.textContent=text;return span;
+ const palette={
+  KSA:'bg-emerald-900 text-emerald-300 border-emerald-800',
+  QAT:'bg-fuchsia-900 text-fuchsia-300 border-fuchsia-800',
+  UAE:'bg-yellow-900 text-yellow-300 border-yellow-800',
+  KWT:'bg-indigo-900 text-indigo-300 border-indigo-800',
+  IRQ:'bg-red-900 text-red-300 border-red-800',
+  OMN:'bg-sky-900 text-sky-300 border-sky-800',
+  'Air freight':'bg-blue-900 text-blue-300 border-blue-800',
+  'Ocean freight':'bg-rose-900 text-rose-300 border-rose-800',
+  'Local Market':'bg-amber-900 text-amber-300 border-amber-800'
+ };
+
+ const span=document.createElement('span');
+ span.className=`badge ${palette[text]||'bg-gray-800 text-gray-300 border-gray-700'}`;
+ span.textContent=text;
+ return span;
 }
+
 function renderDashboard(){
- const stocks=appData.stocks,requested=stocks.reduce((a,s)=>a+(Number(s.qty)||0),0),delivered=stocks.reduce((a,s)=>a+Math.min(Number(s.qty)||0,Number(s.qtyDelivered)||0),0),remaining=Math.max(0,requested-delivered),pct=requested?Math.round(delivered/requested*100):0;
+ const stocks=appData.stocks;
+ const requested=stocks.reduce((a,s)=>a+(Number(s.qty)||0),0);
+ const delivered=stocks.reduce((a,s)=>a+Math.min(Number(s.qty)||0,Number(s.qtyDelivered)||0),0);
+ const remaining=Math.max(0,requested-delivered);
+ const pct=requested?Math.round(delivered/requested*100):0;
+
  document.getElementById('kpiRecords').textContent=stocks.length.toLocaleString();
  document.getElementById('kpiRequested').textContent=requested.toLocaleString();
  document.getElementById('kpiDelivered').textContent=delivered.toLocaleString();
  document.getElementById('kpiRemaining').textContent=remaining.toLocaleString();
- document.getElementById('kpiProgress').textContent=pct+'%';document.getElementById('progressBar').style.width=pct+'%';
- const countryBox=document.getElementById('countryBreakdown');countryBox.replaceChildren();
- COUNTRIES.forEach(c=>{const n=stocks.filter(s=>s.country===c).reduce((a,s)=>a+(Number(s.qty)||0),0);const d=document.createElement('div');d.className='bg-gray-800 rounded-lg p-3';const name=document.createElement('div');name.className='text-xs muted';name.textContent=c;const val=document.createElement('div');val.className='font-bold text-white text-lg';val.textContent=n.toLocaleString();d.append(name,val);countryBox.append(d);});
- const statuses=['Pending','Partial','Delivered'],box=document.getElementById('statusBreakdown');box.replaceChildren();
- statuses.forEach(st=>{const count=stocks.filter(s=>getDeliveryStatus(s)===st).length;const row=document.createElement('div');row.className='flex justify-between items-center text-sm';const l=document.createElement('span');l.textContent=st;const v=document.createElement('strong');v.className='text-white';v.textContent=count.toLocaleString();row.append(l,v);box.append(row);});
-}
-function clearFilters(){['searchInput','dateFrom','dateTo'].forEach(id=>document.getElementById(id).value='');['filterSeller','filterCountry','filterStatus','filterPayment','filterShipping','sortBy'].forEach(id=>document.getElementById(id).value=id==='sortBy'?'newest':'All');renderTable();}
-function cell(row,value,className='p-3'){const td=document.createElement('td');td.className=className;td.textContent=value??'';row.append(td);return td;}
-function renderTable(){
- const seller=document.getElementById('filterSeller').value,country=document.getElementById('filterCountry').value,status=document.getElementById('filterStatus').value,payment=document.getElementById('filterPayment').value,shipping=document.getElementById('filterShipping').value,q=document.getElementById('searchInput').value.trim().toLowerCase(),from=document.getElementById('dateFrom').value,to=document.getElementById('dateTo').value;
- let rows=appData.stocks.filter(s=>(seller==='All'||s.seller===seller)&&(country==='All'||s.country===country)&&(status==='All'||getDeliveryStatus(s)===status)&&(payment==='All'||s.payStatus===payment)&&(shipping==='All'||s.shipping===shipping)&&(!q||s.seller.toLowerCase().includes(q)||s.quotation.toLowerCase().includes(q))&&(!from||s.reqDate>=from)&&(!to||s.reqDate<=to));
- const sort=document.getElementById('sortBy').value;
- rows.sort((a,b)=>sort==='oldest'?a.reqDate.localeCompare(b.reqDate):sort==='qtyHigh'?b.qty-a.qty:sort==='qtyLow'?a.qty-b.qty:sort==='seller'?a.seller.localeCompare(b.seller):b.reqDate.localeCompare(a.reqDate));
- const tbody=document.getElementById('tableBody');tbody.replaceChildren();document.getElementById('recordCount').textContent=`Showing ${rows.length} of ${appData.stocks.length} records`;
- if(!rows.length){const tr=document.createElement('tr'),td=cell(tr,'No records match your filters.','p-12 text-center text-gray-500');td.colSpan=13;tbody.append(tr);return;}
- rows.forEach(s=>{
-  const tr=document.createElement('tr');tr.className='hover:bg-gray-800/70';
-  const st=getDeliveryStatus(s),del=Math.min(s.qty,Number(s.qtyDelivered)||0),remaining=Math.max(0,s.qty-del);
-  const statusCell=document.createElement('td');statusCell.className='p-3';const statusBadge=document.createElement('span');statusBadge.className='badge '+(st==='Delivered'?'bg-emerald-900 text-emerald-300 border-emerald-800':st==='Partial'?'bg-amber-900 text-amber-300 border-amber-800':'bg-gray-800 text-gray-300 border-gray-700');statusBadge.textContent=st;statusCell.append(statusBadge);tr.append(statusCell);
-  cell(tr,s.reqDate,'p-3 text-gray-400');cell(tr,s.seller,'p-3 text-white font-bold');cell(tr,s.quotation,'p-3 text-gray-300 font-mono');cell(tr,s.qty.toLocaleString(),'p-3 text-right font-bold');
-  let td=cell(tr,'','p-3');td.append(badge(s.country));td=cell(tr,'','p-3');td.append(badge(s.shipping));
-  cell(tr,s.payStatus,'p-3 font-semibold');cell(tr,s.payMethod,'p-3 text-gray-400');cell(tr,del.toLocaleString(),'p-3 text-right font-bold text-emerald-300');cell(tr,remaining.toLocaleString(),'p-3 text-right font-bold');cell(tr,s.delDate||'—','p-3 text-gray-400');
-  td=document.createElement('td');td.className='p-3';const actions=document.createElement('div');actions.className='flex justify-center gap-2';
-  const edit=document.createElement('button');edit.type='button';edit.textContent='Edit';edit.className='text-blue-400 hover:text-blue-300 text-xs font-bold';edit.addEventListener('click',()=>editStock(s.id));
-  const delBtn=document.createElement('button');delBtn.type='button';delBtn.textContent='Delete';delBtn.className='text-red-400 hover:text-red-300 text-xs font-bold';delBtn.addEventListener('click',()=>deleteStock(s.id));actions.append(edit,delBtn);td.append(actions);tr.append(td);tbody.append(tr);
+ document.getElementById('kpiProgress').textContent=pct+'%';
+ document.getElementById('progressBar').style.width=pct+'%';
+
+ const countryBox=document.getElementById('countryBreakdown');
+ countryBox.replaceChildren();
+
+ COUNTRIES.forEach(c=>{
+  const n=stocks.filter(s=>s.country===c).reduce((a,s)=>a+(Number(s.qty)||0),0);
+  const d=document.createElement('div');
+  d.className='bg-gray-800 rounded-lg p-3';
+  const name=document.createElement('div');
+  name.className='text-xs muted';
+  name.textContent=c;
+  const val=document.createElement('div');
+  val.className='font-bold text-white text-lg';
+  val.textContent=n.toLocaleString();
+  d.append(name,val);
+  countryBox.append(d);
+ });
+
+ const statuses=['Pending','Partial','Delivered'];
+ const box=document.getElementById('statusBreakdown');
+ box.replaceChildren();
+
+ statuses.forEach(st=>{
+  const count=stocks.filter(s=>getDeliveryStatus(s)===st).length;
+  const row=document.createElement('div');
+  row.className='flex justify-between items-center text-sm';
+  const l=document.createElement('span');
+  l.textContent=st;
+  const v=document.createElement('strong');
+  v.className='text-white';
+  v.textContent=count.toLocaleString();
+  row.append(l,v);
+  box.append(row);
  });
 }
+
+function clearFilters(){
+ ['searchInput','dateFrom','dateTo'].forEach(id=>document.getElementById(id).value='');
+ ['filterSeller','filterCountry','filterStatus','filterPayment','filterShipping','sortBy'].forEach(id=>{
+  document.getElementById(id).value=id==='sortBy'?'newest':'All';
+ });
+ renderTable();
+}
+
+function cell(row,value,className='p-3'){
+ const td=document.createElement('td');
+ td.className=className;
+ td.textContent=value??'';
+ row.append(td);
+ return td;
+}
+
+function renderTable(){
+ const seller=document.getElementById('filterSeller').value;
+ const country=document.getElementById('filterCountry').value;
+ const status=document.getElementById('filterStatus').value;
+ const payment=document.getElementById('filterPayment').value;
+ const shipping=document.getElementById('filterShipping').value;
+ const q=document.getElementById('searchInput').value.trim().toLowerCase();
+ const from=document.getElementById('dateFrom').value;
+ const to=document.getElementById('dateTo').value;
+
+ let rows=appData.stocks.filter(s=>
+  (seller==='All'||s.seller===seller)&&
+  (country==='All'||s.country===country)&&
+  (status==='All'||getDeliveryStatus(s)===status)&&
+  (payment==='All'||s.payStatus===payment)&&
+  (shipping==='All'||s.shipping===shipping)&&
+  (!q||s.seller.toLowerCase().includes(q)||s.quotation.toLowerCase().includes(q))&&
+  (!from||s.reqDate>=from)&&
+  (!to||s.reqDate<=to)
+ );
+
+ const sort=document.getElementById('sortBy').value;
+ rows.sort((a,b)=>
+  sort==='oldest'?a.reqDate.localeCompare(b.reqDate):
+  sort==='qtyHigh'?b.qty-a.qty:
+  sort==='qtyLow'?a.qty-b.qty:
+  sort==='seller'?a.seller.localeCompare(b.seller):
+  b.reqDate.localeCompare(a.reqDate)
+ );
+
+ const tbody=document.getElementById('tableBody');
+ tbody.replaceChildren();
+ document.getElementById('recordCount').textContent=`Showing ${rows.length} of ${appData.stocks.length} records`;
+
+ if(!rows.length){
+  const tr=document.createElement('tr');
+  const td=cell(tr,'No records match your filters.','p-12 text-center text-gray-500');
+  td.colSpan=13;
+  tbody.append(tr);
+  return;
+ }
+
+ rows.forEach(s=>{
+  const tr=document.createElement('tr');
+  tr.className='hover:bg-gray-800/70';
+  const st=getDeliveryStatus(s);
+  const del=Math.min(s.qty,Number(s.qtyDelivered)||0);
+  const remaining=Math.max(0,s.qty-del);
+
+  const statusCell=document.createElement('td');
+  statusCell.className='p-3';
+  const statusBadge=document.createElement('span');
+  statusBadge.className='badge '+(st==='Delivered'?'bg-emerald-900 text-emerald-300 border-emerald-800':st==='Partial'?'bg-amber-900 text-amber-300 border-amber-800':'bg-gray-800 text-gray-300 border-gray-700');
+  statusBadge.textContent=st;
+  statusCell.append(statusBadge);
+  tr.append(statusCell);
+
+  cell(tr,s.reqDate,'p-3 text-gray-400');
+  cell(tr,s.seller,'p-3 text-white font-bold');
+  cell(tr,s.quotation,'p-3 text-gray-300 font-mono');
+  cell(tr,s.qty.toLocaleString(),'p-3 text-right font-bold');
+
+  let td=cell(tr,'','p-3');
+  td.append(badge(s.country));
+  td=cell(tr,'','p-3');
+  td.append(badge(s.shipping));
+
+  cell(tr,s.payStatus,'p-3 font-semibold');
+  cell(tr,s.payMethod,'p-3 text-gray-400');
+  cell(tr,del.toLocaleString(),'p-3 text-right font-bold text-emerald-300');
+  cell(tr,remaining.toLocaleString(),'p-3 text-right font-bold');
+  cell(tr,s.delDate||'—','p-3 text-gray-400');
+
+  td=document.createElement('td');
+  td.className='p-3';
+  const actions=document.createElement('div');
+  actions.className='flex justify-center gap-2';
+
+  const edit=document.createElement('button');
+  edit.type='button';
+  edit.textContent='Edit';
+  edit.className='text-blue-400 hover:text-blue-300 text-xs font-bold';
+  edit.addEventListener('click',()=>editStock(s.id));
+
+  const delBtn=document.createElement('button');
+  delBtn.type='button';
+  delBtn.textContent='Delete';
+  delBtn.className='text-red-400 hover:text-red-300 text-xs font-bold';
+  delBtn.addEventListener('click',()=>deleteStock(s.id));
+
+  actions.append(edit,delBtn);
+  td.append(actions);
+  tr.append(td);
+  tbody.append(tr);
+ });
+}
+
 function openAddModal(){
- if(!appData.sellers.length){alert('Add at least one seller in Manage Dropdowns first.');toggleModal('settingsModal');return;}
- if(!appData.payMethods.length){alert('Add at least one payment method in Manage Dropdowns first.');toggleModal('settingsModal');return;}
- document.getElementById('stockForm').reset();document.getElementById('stockId').value='';document.getElementById('reqDate').value=todayLocal();document.getElementById('qtyDelivered').value='0';document.getElementById('modalTitle').textContent='Add New Stock';toggleModal('stockModal');
+ if(!appData.sellers.length){
+  alert('Add at least one seller in Manage Dropdowns first.');
+  toggleModal('settingsModal');
+  return;
+ }
+ if(!appData.payMethods.length){
+  alert('Add at least one payment method in Manage Dropdowns first.');
+  toggleModal('settingsModal');
+  return;
+ }
+
+ document.getElementById('stockForm').reset();
+ document.getElementById('stockId').value='';
+ document.getElementById('reqDate').value=todayLocal();
+ document.getElementById('qtyDelivered').value='0';
+ document.getElementById('modalTitle').textContent='Add New Stock';
+ toggleModal('stockModal');
 }
+
 function editStock(id){
- const s=appData.stocks.find(x=>x.id===id);if(!s)return;
- for(const [field,value] of Object.entries({stockId:s.id,reqDate:s.reqDate,seller:s.seller,quotation:s.quotation,qty:s.qty,country:s.country,shipping:s.shipping,payStatus:s.payStatus,payMethod:s.payMethod,qtyDelivered:s.qtyDelivered,delDate:s.delDate})){document.getElementById(field).value=value??'';}
- document.getElementById('modalTitle').textContent='Edit Stock Record';toggleModal('stockModal');
+ const s=appData.stocks.find(x=>x.id===id);
+ if(!s)return;
+
+ for(const [field,value] of Object.entries({
+  stockId:s.id,reqDate:s.reqDate,seller:s.seller,quotation:s.quotation,
+  qty:s.qty,country:s.country,shipping:s.shipping,payStatus:s.payStatus,
+  payMethod:s.payMethod,qtyDelivered:s.qtyDelivered,delDate:s.delDate
+ })){
+  document.getElementById(field).value=value??'';
+ }
+
+ document.getElementById('modalTitle').textContent='Edit Stock Record';
+ toggleModal('stockModal');
 }
-function deleteStock(id){if(!confirm('Delete this stock record permanently? This cannot be undone.'))return;appData.stocks=appData.stocks.filter(s=>s.id!==id);saveData();showToast('Record deleted.');}
+
+function deleteStock(id){
+ if(!confirm('Delete this stock record permanently? This cannot be undone.'))return;
+ appData.stocks=appData.stocks.filter(s=>s.id!==id);
+ saveData();
+ showToast('Record deleted.');
+}
+
 function saveStock(e){
  e.preventDefault();
- const idVal=document.getElementById('stockId').value,qty=safeInt(document.getElementById('qty').value,1),del=safeInt(document.getElementById('qtyDelivered').value||0,0);
- if(qty===null){alert('Requested quantity must be a whole number greater than zero.');return;}
- if(del===null||del>qty){alert('Delivered quantity must be a whole number between zero and the requested quantity.');return;}
- const quotation=cleanText(document.getElementById('quotation').value,100),seller=document.getElementById('seller').value;
- const duplicate=appData.stocks.find(s=>s.quotation.toLowerCase()===quotation.toLowerCase()&&s.id!==Number(idVal));
+
+ const idVal=document.getElementById('stockId').value;
+ const qty=safeInt(document.getElementById('qty').value,1);
+ const del=safeInt(document.getElementById('qtyDelivered').value||0,0);
+
+ if(qty===null){
+  alert('Requested quantity must be a whole number greater than zero.');
+  return;
+ }
+ if(del===null||del>qty){
+  alert('Delivered quantity must be a whole number between zero and the requested quantity.');
+  return;
+ }
+
+ const quotation=cleanText(document.getElementById('quotation').value,100);
+ const seller=document.getElementById('seller').value;
+
+ const duplicate=appData.stocks.find(s=>
+  s.quotation.toLowerCase()===quotation.toLowerCase()&&s.id!==Number(idVal)
+ );
+
  if(duplicate&&!confirm(`Quotation "${quotation}" already exists. Save another record with this quotation?`))return;
- const data={id:idVal?Number(idVal):Date.now()+Math.floor(Math.random()*1000),reqDate:document.getElementById('reqDate').value,seller,quotation,qty,country:document.getElementById('country').value,shipping:document.getElementById('shipping').value,payStatus:document.getElementById('payStatus').value,payMethod:document.getElementById('payMethod').value,qtyDelivered:del,delDate:document.getElementById('delDate').value};
+
+ const data={
+  id:idVal?Number(idVal):Date.now()+Math.floor(Math.random()*1000),
+  reqDate:document.getElementById('reqDate').value,
+  seller,quotation,qty,
+  country:document.getElementById('country').value,
+  shipping:document.getElementById('shipping').value,
+  payStatus:document.getElementById('payStatus').value,
+  payMethod:document.getElementById('payMethod').value,
+  qtyDelivered:del,
+  delDate:document.getElementById('delDate').value
+ };
+
  if(del>0&&!data.delDate)data.delDate=todayLocal();
  if(del===0)data.delDate='';
- if(idVal){const i=appData.stocks.findIndex(s=>s.id===Number(idVal));if(i<0){alert('This record no longer exists.');return;}appData.stocks[i]=data;}else appData.stocks.push(data);
- saveData();toggleModal('stockModal');showToast('Stock record saved.');
+
+ if(idVal){
+  const i=appData.stocks.findIndex(s=>s.id===Number(idVal));
+  if(i<0){alert('This record no longer exists.');return;}
+  appData.stocks[i]=data;
+ }else{
+  appData.stocks.push(data);
+ }
+
+ saveData();
+ toggleModal('stockModal');
+ showToast('Stock record saved.');
 }
+
 function exportToCSV(){
- if(!appData.stocks.length){alert('No records to export.');return;}
+ if(!appData.stocks.length){
+  alert('No records to export.');
+  return;
+ }
+
  const headers=['Delivery Status','Requested At','Seller','Quotation','Requested Qty','Country','Shipping','Payment Status','Payment Method','Qty Delivered','Qty Remaining','Delivered Date'];
  const lines=[headers.map(escapeCSV).join(',')];
- appData.stocks.forEach(s=>{const d=Math.min(s.qty,Number(s.qtyDelivered)||0);lines.push([getDeliveryStatus(s),s.reqDate,s.seller,s.quotation,s.qty,s.country,s.shipping,s.payStatus,s.payMethod,d,Math.max(0,s.qty-d),s.delDate].map(escapeCSV).join(','));});
- downloadBlob('\uFEFF'+lines.join('\r\n'),'text/csv;charset=utf-8',`upcoming_stocks_${todayLocal()}.csv`);showToast('CSV exported.');
+
+ appData.stocks.forEach(s=>{
+  const d=Math.min(s.qty,Number(s.qtyDelivered)||0);
+  lines.push([
+   getDeliveryStatus(s),s.reqDate,s.seller,s.quotation,s.qty,
+   s.country,s.shipping,s.payStatus,s.payMethod,d,
+   Math.max(0,s.qty-d),s.delDate
+  ].map(escapeCSV).join(','));
+ });
+
+ downloadBlob('\uFEFF'+lines.join('\r\n'),'text/csv;charset=utf-8',`upcoming_stocks_${todayLocal()}.csv`);
+ showToast('CSV exported.');
 }
+
+function downloadBlob(content,type,filename){
+ const blob=new Blob([content],{type});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');
+ a.href=url;
+ a.download=filename;
+ document.body.append(a);
+ a.click();
+ a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
 function exportBackup(){
  const payload={app:'Upcoming Stocks',version:5,exportedAt:new Date().toISOString(),data:appData};
- downloadBlob(JSON.stringify(payload,null,2),'application/json',`upcoming_stocks_backup_${todayLocal()}.json`);showToast('Full backup downloaded.');
+ downloadBlob(JSON.stringify(payload,null,2),'application/json',`upcoming_stocks_backup_${todayLocal()}.json`);
+ showToast('Full backup downloaded.');
 }
-function downloadBlob(content,type,filename){
- const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+
+/* SPREADSHEET IMPORT */
+
+let pendingSpreadsheetRows=[];
+
+function normalizeHeader(value){
+ return String(value??'').toLowerCase().trim().replace(/[\s_\-./()]+/g,'').replace(/[^a-z0-9]/g,'');
 }
-function importBackup(event){
- const file=event.target.files?.[0];event.target.value='';if(!file)return;
+
+const SHEET_ALIASES={
+ reqDate:['requesteddate','requestdate','date','stockdate','arrivaldate','createddate'],
+ seller:['seller','accountmanager','am','manager','employee','sellername'],
+ quotation:['quotation','quotationnumber','quoteno','quote','reference','ref','orderreference','ordernumber'],
+ qty:['quantity','qty','requestedquantity','stockquantity','requestedqty'],
+ country:['country','destination','destinationcountry','market'],
+ shipping:['shipping','shippingmethod','shipment','freight','shippingtype'],
+ payStatus:['paymentstatus','payment','status'],
+ payMethod:['paymentmethod','paymenttype','method'],
+ qtyDelivered:['qtydelivered','quantitydelivered','deliveredquantity','deliveredqty'],
+ delDate:['deliverydate','delivereddate','lastdeliverydate']
+};
+
+function sheetDate(value){
+ if(value instanceof Date&&!isNaN(value)){
+  return `${value.getFullYear()}-${String(value.getMonth()+1).padStart(2,'0')}-${String(value.getDate()).padStart(2,'0')}`;
+ }
+ if(typeof value==='number'&&window.XLSX?.SSF){
+  const d=XLSX.SSF.parse_date_code(value);
+  if(d)return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+ }
+
+ const s=cleanText(value,40);
+ if(!s)return '';
+
+ if(/^\d{4}-\d{1,2}-\d{1,2}$/.test(s)){
+  const [y,m,d]=s.split('-');
+  return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+ }
+
+ const parsed=new Date(s);
+ if(!isNaN(parsed)){
+  return `${parsed.getFullYear()}-${String(parsed.getMonth()+1).padStart(2,'0')}-${String(parsed.getDate()).padStart(2,'0')}`;
+ }
+ return '';
+}
+
+function normalizeCountry(value){
+ const s=cleanText(value,30).toUpperCase();
+ const aliases={
+  SA:'KSA',SAUDI:'KSA','SAUDI ARABIA':'KSA',KSA:'KSA',
+  AE:'UAE',UAE:'UAE','UNITED ARAB EMIRATES':'UAE',
+  QA:'QAT',QAT:'QAT',QATAR:'QAT',
+  KW:'KWT',KWT:'KWT',KUWAIT:'KWT',
+  IQ:'IRQ',IRQ:'IRQ',IRAQ:'IRQ',
+  OM:'OMN',OMN:'OMN',OMAN:'OMN'
+ };
+ return aliases[s]||'KSA';
+}
+
+function normalizeShipping(value){
+ const s=cleanText(value,50).toLowerCase();
+ if(s.includes('ocean')||s.includes('sea'))return 'Ocean freight';
+ if(s.includes('local')||s.includes('market'))return 'Local Market';
+ return 'Air freight';
+}
+
+function normalizePayment(value){
+ const s=cleanText(value,50).toLowerCase();
+ if(s.includes('paid'))return 'Paid';
+ if(s.includes('deposit')||s.includes('partial'))return 'Deposit';
+ return 'Approved';
+}
+
+function handleSpreadsheetImport(event){
+ const file=event.target.files?.[0];
+ event.target.value='';
+ if(!file)return;
+
+ if(!window.XLSX){
+  alert('Spreadsheet reader did not load. Refresh the page and try again.');
+  return;
+ }
+
  const reader=new FileReader();
+
  reader.onload=()=>{
   try{
-   const parsed=JSON.parse(reader.result),data=parsed.data||parsed;
-   if(!data||!Array.isArray(data.stocks)||!Array.isArray(data.sellers)||!Array.isArray(data.payMethods))throw new Error('This file is not a valid Upcoming Stocks backup.');
-   if(!confirm(`Restore backup with ${data.stocks.length} stock records? This replaces the data currently stored in this browser.`))return;
-   appData={sellers:data.sellers.map(x=>cleanText(x,80)).filter(Boolean),payMethods:data.payMethods.map(x=>cleanText(x,80)).filter(Boolean),stocks:data.stocks.map(s=>({id:Number(s.id)||Date.now()+Math.floor(Math.random()*100000),reqDate:cleanText(s.reqDate,10),seller:cleanText(s.seller,80),quotation:cleanText(s.quotation,100),qty:safeInt(s.qty,0)??0,country:COUNTRIES.includes(s.country)?s.country:'KSA',shipping:['Air freight','Ocean freight','Local Market'].includes(s.shipping)?s.shipping:'Air freight',payStatus:['Approved','Paid','Deposit'].includes(s.payStatus)?s.payStatus:'Approved',payMethod:cleanText(s.payMethod,80),qtyDelivered:Math.min(safeInt(s.qty,0)??0,safeInt(s.qtyDelivered,0)??(s.isDelivered?(safeInt(s.qty,0)??0):0)),delDate:cleanText(s.delDate,10)}))};
-   if(!appData.payMethods.length)appData.payMethods=[...DEFAULT_PAY_METHODS];saveData();showToast('Backup restored successfully.');
-  }catch(err){alert('Could not restore backup: '+err.message);}
+   const workbook=XLSX.read(reader.result,{type:'array',cellDates:true});
+   const sheet=workbook.Sheets[workbook.SheetNames[0]];
+   const matrix=XLSX.utils.sheet_to_json(sheet,{header:1,defval:'',raw:true});
+
+   if(!matrix||matrix.length<2){
+    throw new Error('The first sheet must contain a header row and at least one data row.');
+   }
+
+   const headers=matrix[0].map(normalizeHeader);
+   const indexes={};
+
+   for(const [field,aliases] of Object.entries(SHEET_ALIASES)){
+    indexes[field]=headers.findIndex(h=>aliases.includes(h));
+   }
+
+   const required=['reqDate','seller','quotation','qty'];
+   const missing=required.filter(k=>indexes[k]===-1);
+
+   if(missing.length){
+    throw new Error('Could not find required columns: '+missing.map(k=>({
+     reqDate:'Requested Date',
+     seller:'Seller / Account Manager',
+     quotation:'Quotation',
+     qty:'Quantity'
+    }[k])).join(', ')+'. Check the header row in your sheet.');
+   }
+
+   const existingQuotes=new Set(appData.stocks.map(s=>s.quotation.toLowerCase()));
+   const seen=new Set();
+   const preview=[];
+   const ready=[];
+   let duplicates=0,invalid=0,found=0;
+
+   matrix.slice(1).forEach((row,index)=>{
+    if(!row.some(v=>String(v??'').trim()!==''))return;
+    found++;
+
+    const get=k=>indexes[k]===-1?'':row[indexes[k]];
+
+    const reqDate=sheetDate(get('reqDate'));
+    const seller=cleanText(get('seller'),80);
+    const quotation=cleanText(get('quotation'),100);
+    const qty=safeInt(String(get('qty')).replace(/,/g,''),1);
+
+    let reason='';
+
+    if(!reqDate||!seller||!quotation||qty===null){
+     reason='Missing or invalid required value';
+    }else if(existingQuotes.has(quotation.toLowerCase())||seen.has(quotation.toLowerCase())){
+     reason='Duplicate quotation';
+    }
+
+    const record={
+     id:Date.now()+index+Math.floor(Math.random()*1000),
+     reqDate,seller,quotation,qty,
+     country:normalizeCountry(get('country')),
+     shipping:normalizeShipping(get('shipping')),
+     payStatus:normalizePayment(get('payStatus')),
+     payMethod:cleanText(get('payMethod'),80)||DEFAULT_PAY_METHODS[0],
+     qtyDelivered:Math.min(qty,safeInt(String(get('qtyDelivered')||0).replace(/,/g,''),0)??0),
+     delDate:sheetDate(get('delDate'))
+    };
+
+    if(reason){
+     if(reason==='Duplicate quotation')duplicates++;
+     else invalid++;
+    }else{
+     ready.push(record);
+     seen.add(quotation.toLowerCase());
+    }
+
+    preview.push({record,reason,rowNumber:index+2});
+   });
+
+   if(!found)throw new Error('No data rows were found below the header.');
+
+   pendingSpreadsheetRows=ready;
+
+   document.getElementById('importFileName').textContent=file.name;
+   document.getElementById('importFound').textContent=found;
+   document.getElementById('importReady').textContent=ready.length;
+   document.getElementById('importDuplicates').textContent=duplicates;
+   document.getElementById('importInvalid').textContent=invalid;
+
+   const body=document.getElementById('importPreviewBody');
+   body.replaceChildren();
+
+   preview.slice(0,100).forEach(item=>{
+    const tr=document.createElement('tr');
+    const status=document.createElement('td');
+    status.className='p-2';
+    status.textContent=item.reason?'Skipped':'Ready';
+    status.className+=' '+(item.reason?'text-amber-300':'text-emerald-300');
+
+    const r=item.record;
+    [r.reqDate,r.seller,r.quotation,r.qty,r.country,item.reason||'—'].forEach(v=>{
+     const td=document.createElement('td');
+     td.className='p-2';
+     td.textContent=v;
+     tr.append(td);
+    });
+
+    tr.prepend(status);
+    body.append(tr);
+   });
+
+   if(preview.length>100){
+    const tr=document.createElement('tr');
+    const td=document.createElement('td');
+    td.colSpan=7;
+    td.className='p-3 text-center text-gray-500';
+    td.textContent=`Showing first 100 of ${preview.length} rows.`;
+    tr.append(td);
+    body.append(tr);
+   }
+
+   document.getElementById('confirmImportBtn').disabled=ready.length===0;
+   document.getElementById('confirmImportBtn').classList.toggle('opacity-40',ready.length===0);
+   document.getElementById('importPreviewModal').style.display='flex';
+
+  }catch(err){
+   alert('Could not import spreadsheet: '+err.message);
+  }
  };
- reader.onerror=()=>alert('Could not read the selected file.');reader.readAsText(file);
+
+ reader.onerror=()=>alert('Could not read this file.');
+ reader.readAsArrayBuffer(file);
 }
-document.addEventListener('DOMContentLoaded',()=>{loadData();updateDropdowns();renderSettingsLists();renderDashboard();renderTable();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-overlay').forEach(m=>m.style.display='none');});
+
+function closeImportPreview(){
+ document.getElementById('importPreviewModal').style.display='none';
+ pendingSpreadsheetRows=[];
+}
+
+function confirmSpreadsheetImport(){
+ if(!pendingSpreadsheetRows.length)return;
+
+ if(!confirm(`Import ${pendingSpreadsheetRows.length} records? Existing records will be preserved.`))return;
+
+ const newSellers=[...new Set(pendingSpreadsheetRows.map(s=>s.seller))];
+ const newMethods=[...new Set(pendingSpreadsheetRows.map(s=>s.payMethod))];
+
+ newSellers.forEach(s=>{
+  if(!appData.sellers.some(x=>x.toLowerCase()===s.toLowerCase()))appData.sellers.push(s);
+ });
+
+ newMethods.forEach(p=>{
+  if(!appData.payMethods.some(x=>x.toLowerCase()===p.toLowerCase()))appData.payMethods.push(p);
+ });
+
+ appData.stocks.push(...pendingSpreadsheetRows);
+
+ const count=pendingSpreadsheetRows.length;
+ pendingSpreadsheetRows=[];
+
+ document.getElementById('importPreviewModal').style.display='none';
+ saveData();
+ showToast(`${count} records imported successfully.`);
+}
+
+/* JSON BACKUP RESTORE FUNCTION — CONTROLS ARE HIDDEN */
+
+function importBackup(event){
+ const file=event.target.files?.[0];
+ event.target.value='';
+ if(!file)return;
+
+ const reader=new FileReader();
+
+ reader.onload=()=>{
+  try{
+   const parsed=JSON.parse(reader.result);
+   const data=parsed.data||parsed;
+
+   if(!data||!Array.isArray(data.stocks)||!Array.isArray(data.sellers)||!Array.isArray(data.payMethods)){
+    throw new Error('This file is not a valid Upcoming Stocks backup.');
+   }
+
+   if(!confirm(`Restore backup with ${data.stocks.length} stock records? This replaces the data currently stored in this browser.`))return;
+
+   appData={
+    sellers:data.sellers.map(x=>cleanText(x,80)).filter(Boolean),
+    payMethods:data.payMethods.map(x=>cleanText(x,80)).filter(Boolean),
+    stocks:data.stocks.map(s=>({
+     id:Number(s.id)||Date.now()+Math.floor(Math.random()*100000),
+     reqDate:cleanText(s.reqDate,10),
+     seller:cleanText(s.seller,80),
+     quotation:cleanText(s.quotation,100),
+     qty:safeInt(s.qty,0)??0,
+     country:COUNTRIES.includes(s.country)?s.country:'KSA',
+     shipping:['Air freight','Ocean freight','Local Market'].includes(s.shipping)?s.shipping:'Air freight',
+     payStatus:['Approved','Paid','Deposit'].includes(s.payStatus)?s.payStatus:'Approved',
+     payMethod:cleanText(s.payMethod,80),
+     qtyDelivered:Math.min(safeInt(s.qty,0)??0,safeInt(s.qtyDelivered,0)??(s.isDelivered?(safeInt(s.qty,0)??0):0)),
+     delDate:cleanText(s.delDate,10)
+    }))
+   };
+
+   if(!appData.payMethods.length)appData.payMethods=[...DEFAULT_PAY_METHODS];
+
+   saveData();
+   showToast('Backup restored successfully.');
+
+  }catch(err){
+   alert('Could not restore backup: '+err.message);
+  }
+ };
+
+ reader.onerror=()=>alert('Could not read the selected file.');
+ reader.readAsText(file);
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+ loadData();
+ updateDropdowns();
+ renderSettingsLists();
+ renderDashboard();
+ renderTable();
+});
+
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'){
+  document.querySelectorAll('.modal-overlay').forEach(m=>m.style.display='none');
+ }
+});
 </script>
 </body>
 </html>
